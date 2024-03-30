@@ -5,7 +5,10 @@ The Spectre Menace: Mitigating Spectre Attacks with LLVM
 
 
 Tasks: <br />
-    Recreate findings from USLH <br />
-    Recreate findings from Clou <br />
+1. Spectre v1 PoC on AARCH64 (M1/M2)
+2. SLH Pass on Spectre v1 Poc on AARCH64
+3. Variable-Timing PoC on AARCH64
+4. USLH Pass on Variable-Timing PoC on AARCH64
+5. Benchmark with USLH AARCH64 pass on Spec2017 or likewise
 
     
