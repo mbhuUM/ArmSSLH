@@ -26,9 +26,7 @@ void victim_function(uint8_t x, int train)
   if (x < array[2 * STRIDE]) {
     if (train)  return;
     asm volatile ("fmov d0, %0" :: "r"(victim_value));
-    // asm volatile ("movsd %0, %%xmm0" :: "x"(victim_value));
-asm volatile (".rept 40;\nfmul d0, d0, d0;\n.endr;");
-*(volatile uint64_t*)&global_variable;
+
   }
 }
 

@@ -13,19 +13,31 @@ static inline uint32_t rdtscp() {
   return rv;
 }
 #endif
-
 static inline uint32_t memaccesstime(void *v) {
   uint32_t start, end, duration;
   asm volatile (
       "dmb sy\n"
       "dsb ld\n"
-      "mrs %0, cntvct_el0\n"
-      "LDR x1, [%2]\n" //not convinced this is correct yet
-      "mrs %0, cntvct_el0\n"
-      "SUB %0, %1, %0\n"
-      : "=&r" (duration), "=&r" (end) : "r" (v) : "x1", "memory");
+      "mrs %0, cntvct_el0\n" // Capture start time
+      "ldr x1, [%2]\n"      // Load from memory address in 'v'
+      "mrs %1, cntvct_el0\n" // Capture end time
+      "sub %0, %1, %0\n"    // Calculate duration
+      : "=&r" (duration), "+r" (end) : "r" (v) : "memory");
   return duration;
 }
+
+// static inline uint32_t memaccesstime(void *v) {
+//   uint32_t start, end, duration;
+//   asm volatile (
+//       "dmb sy\n"
+//       "dsb ld\n"
+//       "mrs %0, cntvct_el0\n"
+//       "LDR x1, [%2]\n" //not convinced this is correct yet
+//       "mrs %0, cntvct_el0\n"
+//       "SUB %0, %1, %0\n"
+//       : "=&r" (duration), "=&r" (end) : "r" (v) : "x1", "memory");
+//   return duration;
+// }
 
 void delayloop(int cycles)
 {
@@ -59,7 +71,7 @@ long long read_pmc(unsigned long a)
 //replacement for CLFLUSH
 #define FLUSH_CACHE_LINE(addr) \
 { \
-    asm volatile ("dc civac, %0;\n dsb ish;\nisb" : : "r" (addr) : "memory"); \
+    asm volatile ("dc civac, %0;\n dsb ish;\nisb" : : "r" (&addr) : "memory"); \
 }
 
 

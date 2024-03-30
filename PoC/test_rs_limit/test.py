@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def build():
-	oss.call(['cc', 'main.c', '-O0'])
+	oss.call(['clang', 'main.c'])
 
 def run():
 	oss.call(['bash', 'run.bash'])
@@ -29,8 +29,7 @@ def main(repeat_time = 250, start_time=0):
 	results = [0] * repeat_time
 	threshold = 220
 	for i in range(start_time,repeat_time+1):
-		#asm volatile (".rept 40;\nfmul d0, d0, d0;\n.endr;");
-		modify_line('./main.c', 29, 'asm volatile (".rept 40;\\nfmul d0, d0, d0;\\n.endr;");')
+		modify_line('./main.c', 29, 'asm volatile (".rept ' + str(i) + ';\\n\\tfmul d0, d0, d0;\\n.endr;"); }\n')
 		# modify_line('./main.c', 29, 'asm volatile (\".rept ' + str(i) + '\");' + '\n')
 		build()
 		for j in range(1,101):
