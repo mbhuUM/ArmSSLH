@@ -5,7 +5,7 @@
 #include "low.h"
 #include <arm_neon.h>
 
-#define fast 0x40f0000000000000 
+#define fast 0x0000000000000010 
 #define slow 0x0010deadbeef1337 
 #define SIZE 256
 #define STRIDE 128
@@ -20,14 +20,14 @@ uint64_t global_variable = 0xf;
 
 void victim_function(uint8_t x, int train)
 {
-  for (volatile int i = 0; i < 200; i++);
+  for (volatile int i = 0; i < 1000; i++);
   BARRIER
 
   if (x < array[2 * STRIDE]) {
     if (train)  return;
-    asm volatile ("fmov d0, %0" :: "r"(victim_value));
+    asm volatile ("ucvtf d0, %x0" :: "r"(victim_value));
 
-asm volatile (".rept 45;\n\tfmul d0, d0, d0;\n.endr;"); }
+asm volatile (".rept 40;\n\tfmul d0, d0, d0;\n.endr;"); }
 }
 
 int main(int argc, char *argv[])

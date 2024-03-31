@@ -8,15 +8,17 @@ import matplotlib.pyplot as plt
 import pathlib as path
 import os
 
+
 def check_clang_version():
     # This command calls 'clang --version' and captures the output
-    version_info = oss.check_output(['clang', '--version']).decode('utf-8')
-    print(version_info)
+    # version_info = oss.check_output(['clang', '--version']).decode('utf-8')
+	version_info = os.system("clang --version")
+    # print(version_info)
 
 def build():
 	check_clang_version()
 	oss.call(['pwd'])
-	os.system('clang main.c')
+	os.system('clang PoC/test_rs_limit/main.c -O0')
 
 def run():
 	oss.call(['bash', 'run.bash'])
@@ -38,7 +40,7 @@ def main(repeat_time = 250, start_time=0):
 	results = [0] * repeat_time
 	threshold = 220
 	for i in range(start_time,repeat_time+1):
-		modify_line('main.c', 29, 'asm volatile (".rept ' + str(i) + ';\\n\\tfmul d0, d0, d0;\\n.endr;"); }\n')
+		modify_line('PoC/test_rs_limit/main.c', 29, 'asm volatile (".rept ' + str(i) + ';\\n\\tfmul d0, d0, d0;\\n.endr;"); }\n')
 		# modify_line('./main.c', 29, 'asm volatile (\".rept ' + str(i) + '\");' + '\n')
 		build()
 		for j in range(1,101):
@@ -52,7 +54,13 @@ def main(repeat_time = 250, start_time=0):
 			f.write('\n') 
 
 if __name__ == "__main__":
-    if(len(sys.argv) > 1):
-        main(int(sys.argv[1]), int(sys.argv[2]))
-    else:
-        main()
+	caffeinate_process = oss.Popen(['caffeinate'])
+	print("caffeinated activated")
+	if(len(sys.argv) > 1):
+		print("inside if statement")
+		main(int(sys.argv[1]), int(sys.argv[2]))
+		caffeinate_process.terminate()
+	
+	else:
+	    main()
+

@@ -49,7 +49,7 @@ double __attribute__((optnone)) victim_function(register int secret, register in
     
     asm volatile (
         // "1: \n"  // Label for the loop start
-        ".rept 47\n\t"  // Repeat the following instructions 47 times
+        ".rept 53\n\t"  // Repeat the following instructions 47 times
         "fsqrt d0, d0\n\t"  // Compute the square root of the double-precision value in d0
         "fmul d0, d0, d0\n\t"  // Multiply the value in d0 by itself
         ".endr\n\t"
