@@ -27,7 +27,8 @@ void victim_function(uint8_t x, int train)
     if (train)  return;
     asm volatile ("ucvtf d0, %x0" :: "r"(victim_value));
 
-asm volatile (".rept 40;\n\tfmul d0, d0, d0;\n.endr;"); }
+asm volatile (".rept 250;\n\tfsqrt d0, d0;\nfmul d0, d0, d0;\n.endr;"); }
+
 }
 
 int main(int argc, char *argv[])
