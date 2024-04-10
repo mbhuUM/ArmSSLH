@@ -25,9 +25,9 @@ void victim_function(uint8_t x, int train)
 
   if (x < array[2 * STRIDE]) {
     if (train)  return;
-    asm volatile ("ucvtf d0, %x0" :: "r"(victim_value));
+  asm volatile ("ucvtf d0, %x0" :: "r"(victim_value));
 
-asm volatile (".rept 250;\n\tfsqrt d0, d0;\nfmul d0, d0, d0;\n.endr;"); }
+  asm volatile (".rept 55;\n\tfsqrt d0, d0;\n.endr;"); }
 
 }
 
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
   victim_function(100,0);
 
   BARRIER
-  delayloop(0x800000);
+  delayloop(0x400000);
   BARRIER
 
   start = READ_CNTVCT_EL0();
@@ -67,13 +67,13 @@ int main(int argc, char *argv[])
   end = READ_CNTVCT_EL0() - start;
 
   BARRIER
-  delayloop(0x800000);
+  delayloop(0x080000);
   BARRIER
   
   BARRIER
-  delayloop(0x800000);
+  delayloop(0x080000);
   BARRIER
   
-  printf("%ld\n",end); 
+  printf("%lld\n",end); 
  
 }

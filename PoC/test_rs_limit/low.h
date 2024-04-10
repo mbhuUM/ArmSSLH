@@ -17,11 +17,11 @@ static inline uint32_t memaccesstime(void *v) {
   uint32_t start, end, duration;
   asm volatile (
       "dmb sy\n"
-      "dsb ld\n"
-      "mrs %0, cntvct_el0\n" // Capture start time
+      "isb ld\n"
+      "mrs %w0, cntvct_el0\n" // Capture start time
       "ldr x1, [%2]\n"      // Load from memory address in 'v'
-      "mrs %1, cntvct_el0\n" // Capture end time
-      "sub %0, %1, %0\n"    // Calculate duration
+      "mrs %w1, cntvct_el0\n" // Capture end time
+      "sub %w0, %w1, %w0\n"    // Calculate duration
       : "=&r" (duration), "+r" (end) : "r" (v) : "memory");
   return duration;
 }
@@ -71,7 +71,7 @@ long long read_pmc(unsigned long a)
 //replacement for CLFLUSH
 #define FLUSH_CACHE_LINE(addr) \
 { \
-    asm volatile ("dc civac, %0;\n dsb ish;\nisb" : : "r" (&addr) : "memory"); \
+    asm volatile ("MRS %0, currentel;\ndc civac, %0;\n dsb ish;\nisb" : : "r" (&addr) : "memory"); \
 }
 
 
@@ -138,7 +138,7 @@ long long read_pmc(unsigned long a)
 #endif
 
 // #define BARRIER asm volatile ("lfence;\nmfence;\nsfence");
-#define BARRIER asm volatile("dsb sy;\nisb;\ndmb sy");
+#define BARRIER asm volatile("dmb ld;\ndmb sy;\ndmb st;\n");
 
 // #define DIVIDE(a,b) asm volatile ("movsd %0, %%xmm0;\nmovsd %1, %%xmm1;\ndivsd %%xmm1, %%xmm0"::"x"(a),"x"(b));
 #define DIVIDE(a, b) asm volatile ( \
