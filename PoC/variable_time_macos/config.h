@@ -27,7 +27,7 @@
 #define ITERATIONS 4
 #define VICTIM_CALLS 40
 #define TRAINING 9
-#define THRESHOLD 20
+#define THRESHOLD 220
 #define BENCHMARK 0
 
 /* --- Calculated automatically --- */

