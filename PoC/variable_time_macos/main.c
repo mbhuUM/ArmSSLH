@@ -39,14 +39,16 @@ uint64_t fast, slow;
 
 
 //32 MB = 32 * 2^20 = 2 ^ 5 * 2^20 = 2^25
+
 //big_array has to be this size!
-static uint32_t big_array[1048576];
-static uint32_t big_array2[1048576];
-static uint32_t big_array3[1048576];
+static uint32_t big_array[33554432];
+static uint32_t big_array2[33554432];
+static uint32_t big_array3[33554432];
 
 void flush_cache()
 {
-  for (int i = 0; i < 1048576; i++)
+  
+  for (int i = 0; i < 33554432; i++)
   {
     big_array[i] = i;
     big_array2[i] = i;
