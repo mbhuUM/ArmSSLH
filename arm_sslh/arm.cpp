@@ -435,13 +435,33 @@ bool AArch64SpeculationHardening::makeGPRSpeculationSafe(
   assert(AArch64::GPR32allRegClass.contains(Reg) ||
          AArch64::GPR64allRegClass.contains(Reg));
 
+
   // Loads cannot directly load a value into the SP (nor WSP).
   // Therefore, if Reg is SP or WSP, it is because the instruction loads from
   // the stack through the stack pointer.
   //
   // Since the stack pointer is never dynamically controllable, don't harden it.
-  if (Reg == AArch64::SP || Reg == AArch64::WSP)
-    return false;
+  // NEW: if reg is SP and offset is fixed -> harden
+  if (Reg == AArch64::SP || Reg == AArch64::WSP) {
+    // Check if there is an immediate offset associated with the stack pointer.
+    bool hasImmediateOffset = false;
+    for (const auto &Operand : MI.operands()) {
+      if (Operand.isImm() && Operand.getOffset() == Operand.getImm()) {
+        // Assuming here that `Operand.getOffset()` method would indicate
+        // the offset value if this operand is associated with an address calculation.
+        // You might need to adapt this depending on how LLVM represents these specifics.
+        // This condition checks if the offset is an immediate and known at compile time.
+        hasImmediateOffset = true;
+      }
+    }
+    // do not harden if unknown (compile-time) offset
+    if (!hasImmediateOffset) {
+        return false;
+    }
+  }
+//   }
+//   if (Reg == AArch64::SP || Reg == AArch64::WSP)
+//     return false;
 
   // Do not harden the register again if already hardened before.
   if (RegsAlreadyMasked[Reg])
