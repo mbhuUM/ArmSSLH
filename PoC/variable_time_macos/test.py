@@ -31,9 +31,9 @@ def main():
 
     val = 3735927486
     thresholds = []
-    threshold_base = 138
-    num_thresholds = 10
-    threshold_stride = 2
+    threshold_base = 220 
+    num_thresholds = 5
+    threshold_stride = 10
     for i in range(num_thresholds):
          thresholds.append(threshold_base + i*threshold_stride)
     compile()
@@ -41,7 +41,7 @@ def main():
     for threshold in thresholds:
         arr = [0] * 32
 
-        for _ in range(500):
+        for _ in range(50):
             output = run(val, threshold)
             tab = parser(output)
             for j in range(32):

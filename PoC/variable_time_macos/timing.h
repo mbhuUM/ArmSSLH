@@ -16,7 +16,7 @@
 #endif /* TIMER */
 
 
-static inline __attribute__((always_inline)) uint64_t probe(char* address){
+static inline __attribute__((always_inline)) uint64_t probe(uint64_t* address){
     register uint64_t start, end;
     memory_fence();
     timer_read(start);

