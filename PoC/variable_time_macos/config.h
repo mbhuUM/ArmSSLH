@@ -25,7 +25,7 @@
 #define BITS 2
 #define ENTRY_SIZE 512
 #define ITERATIONS 4
-#define VICTIM_CALLS 50
+#define VICTIM_CALLS 300
 #define TRAINING 9
 #define THRESHOLD 120
 #define BENCHMARK 0
