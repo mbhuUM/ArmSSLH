@@ -18,16 +18,16 @@
 /* --- Eviction --- */
 #define EVICTION_THRESHOLD 220 /* use calibration */
 #define EVICTION_SET_SIZE 32
-#define EVICTION_MEMORY_SIZE 20 * 1024 * 1024
+#define EVICTION_MEMORY_SIZE 32 * 1024 * 1024
 
 /* --- Spectre --- */
 #define VARIANT 1 /* 1 or 2 */
 #define BITS 2
 #define ENTRY_SIZE 512
 #define ITERATIONS 4
-#define VICTIM_CALLS 10
+#define VICTIM_CALLS 50
 #define TRAINING 9
-#define THRESHOLD 220
+#define THRESHOLD 120
 #define BENCHMARK 0
 
 /* --- Calculated automatically --- */

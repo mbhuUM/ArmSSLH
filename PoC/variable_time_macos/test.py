@@ -12,7 +12,7 @@ def modify_line(file_name, line_num, new_instruction):
 	
 def compile():
 
-    os.system("clang main.c eviction.c counter_thread.c -O0")
+    os.system("clang main.c eviction.c counter_thread.c")
 	
 def run(val):
     run_str = "./a.out " + str(val)
