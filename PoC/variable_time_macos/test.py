@@ -12,7 +12,7 @@ def modify_line(file_name, line_num, new_instruction):
 	
 def compile():
 
-    os.system("clang main.c eviction.c counter_thread.c")
+    os.system("clang main.c eviction.c counter_thread.c ")
 	
 def run(val):
     run_str = "./a.out " + str(val)
@@ -39,7 +39,7 @@ def main():
     compile()
 
     arr = [0] * 32
-    for _ in range(100):
+    for _ in range(10):
         
 
         output = run(val)
