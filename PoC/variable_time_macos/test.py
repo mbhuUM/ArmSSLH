@@ -14,8 +14,8 @@ def compile():
 
     os.system("clang main.c eviction.c counter_thread.c -O0")
 	
-def run(val, threshold):
-    run_str = "./a.out " + str(val) + " " + str(threshold)
+def run(val):
+    run_str = "./a.out " + str(val)
     output =os.popen(run_str).read()
     return output
 
@@ -31,22 +31,22 @@ def main():
 
     val = 3735927486
     thresholds = []
-    threshold_base = 220 
+    threshold_base = 120 
     num_thresholds = 5
-    threshold_stride = 10
+    threshold_stride = 100
     for i in range(num_thresholds):
          thresholds.append(threshold_base + i*threshold_stride)
     compile()
-    
-    for threshold in thresholds:
-        arr = [0] * 32
 
-        for _ in range(50):
-            output = run(val, threshold)
-            tab = parser(output)
-            for j in range(32):
-                arr[j] += int(tab[j])
-        print(threshold, " ", arr)
+    arr = [0] * 32
+    for _ in range(100):
+        
+
+        output = run(val)
+        tab = parser(output)
+        for j in range(32):
+            arr[j] += int(tab[j])
+    print(arr)
     
 
     #return arr

@@ -1,3 +1,7 @@
+//This file is to help emulate the CLFLUSH function that isn't available.
+//Courtesy of Michael Schwarz and Lorenz Hetterich from 
+// the https://github.com/cispa/BranchDifferent/tree/main 
+
 #include "config.h"
 
 
@@ -159,9 +163,9 @@ void evset_find(void* addr){
         Elem* can = NULL;
         int retries = 0;
         while(gt_eviction(&start, &can, addr)){
-            printf("finding eviction set failed!\n");
+            //printf("finding eviction set failed!\n");
             if(retries > 20){
-                printf("max retries exceeded!\n");
+                //printf("max retries exceeded!\n");
                 break;
             }
             // unmap memory chunk
@@ -174,7 +178,7 @@ void evset_find(void* addr){
             retries ++;
         }
         if(retries < 20){
-            printf("Eviction set found!\n");
+            //printf("Eviction set found!\n");
         }
     
         // unmap memory that is no longer needed
@@ -270,7 +274,7 @@ uint64_t find_threshold(){
     return (3*miss+hit) / 4000;
 }
 
-cache_ctx_t cache_remove_prepare(char* addr){
+cache_ctx_t cache_remove_prepare(void * addr){
     if(cache_line_size < sizeof(Elem)){
         printf("ERROR: Entries are bigger than cache line!\n");
     }

@@ -13,7 +13,7 @@
     #error CACHE is set to invalid value!
 #endif /* CACHE */
 
-cache_ctx_t cache_remove_prepare(char* address);
+cache_ctx_t cache_remove_prepare(void * address);
 
 void cache_remove(cache_ctx_t ctx);
 
