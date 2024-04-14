@@ -2,8 +2,8 @@
 #define CONFIG_H
 
 /* --- Constants --- */
-#define EVICTION 0
-#define FLUSHING 1
+#define EVICTION 1
+#define FLUSHING 0
 #define MSR 0
 #define COUNTER_THREAD 1
 
