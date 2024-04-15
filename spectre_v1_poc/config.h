@@ -40,16 +40,16 @@
     // M1 Mac mini: 220
     // threshold for finding eviction sets
     // if commented out, eviction set algorithm will calibrate it automatically
-     #define EVICTION_THRESHOLD 220
+     #define EVICTION_THRESHOLD 0
 
     // iPhone 7: 16
     // iPhone 8 Plus: 16
     // M1 Mac mini: 32
     // eviction set size
-    #define EVICTION_SET_SIZE 32
+    #define EVICTION_SET_SIZE 16
 
     // size of memory to alloc
-    #define EVICTION_MEMORY_SIZE 32 * 1024 * 1024
+    #define EVICTION_MEMORY_SIZE 20 * 1024 * 1024
 
 #endif /* EVICTION */
 
