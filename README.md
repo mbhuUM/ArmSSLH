@@ -1,5 +1,5 @@
-# The-Spectre-Menace
-The Spectre Menace: Mitigating Spectre Attacks with LLVM
+#  ASSLH
+ARM Strong Speculative Load Hardening: Mitigating Spectre Attacks with LLVM
 
 ![Alt text](logo.png)
 
