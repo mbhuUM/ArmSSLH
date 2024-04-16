@@ -39,12 +39,13 @@ test2(int secret, int isPublic)
   buffer[0] = secret;
 
   if (isPublic < array[0x2 * STRIDE]) {
-    char *fixed_address = &buffer[0]; // Fixed address based on the stack pointer offset
-    printf("%d", *fixed_address);
-  }
-  else {
-    char *fixed_address = &buffer[0]; // Fixed address based on the stack pointer offset
-    printf("%d", 12345);
+    int loaded_secret = buffer[0];
+    if (loaded_secret) {
+      *(volatile uint64_t *)&global_variable1;
+    }
+    else {
+      *(volatile uint64_t *)&global_variable2;
+    }
   }
 }
 
