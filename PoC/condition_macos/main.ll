@@ -5,23 +5,22 @@ target triple = "arm64-apple-macosx12.0.0"
 
 @val = global i64 3203383023, align 4096
 @val2 = global i64 19088743, align 4096
-@secret = global i32 -559039810, align 2048
 @array = internal global [131072 x i8] zeroinitializer, align 2048
 @array_ctx = global ptr null, align 8
 @arr_context = global ptr null, align 2048
 @val_context = global ptr null, align 2048
 @val2_context = global ptr null, align 2048
-@secret_context = global ptr null, align 2048
 @time1 = global i64 0, align 8
 @time2 = global i64 0, align 8
 @.str = private unnamed_addr constant [7 x i8] c"%3lld \00", align 1
 @.str.1 = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
+@secret_context = global ptr null, align 2048
 @is_public_context = global ptr null, align 2048
 @training_offset = global i64 0, align 8
 @timestamp = external global i64, align 8
 @llvm.used = appending global [1 x ptr] [ptr @victim_function], section "llvm.metadata"
 
-; Function Attrs: speculative_load_hardening
+; Function Attrs: noinline nounwind speculative_load_hardening ssp uwtable(sync)
 define void @victim_function(i32 noundef %0, i32 noundef %1) #0 {
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
@@ -36,8 +35,8 @@ define void @victim_function(i32 noundef %0, i32 noundef %1) #0 {
   br i1 %10, label %11, label %17
 
 11:                                               ; preds = %2
-  %12 = load i32, ptr @secret, align 2048
-  %13 = icmp eq i32 %12, 0
+  %12 = load i32, ptr %3, align 4
+  %13 = icmp ne i32 %12, 0
   br i1 %13, label %14, label %15
 
 14:                                               ; preds = %11
@@ -91,8 +90,6 @@ define void @setup() #0 {
   store ptr %15, ptr @val_context, align 2048
   %16 = call ptr @cache_remove_prepare(ptr noundef @val2)
   store ptr %16, ptr @val2_context, align 2048
-  %17 = call ptr @cache_remove_prepare(ptr noundef @secret)
-  store ptr %17, ptr @secret_context, align 2048
   ret void
 }
 
@@ -100,83 +97,85 @@ define void @setup() #0 {
 declare ptr @cache_remove_prepare(ptr noundef) #2
 
 ; Function Attrs: noinline nounwind speculative_load_hardening ssp uwtable(sync)
-define void @leakValue() #0 {
-  %1 = alloca ptr, align 8
-  %2 = alloca i64, align 8
+define void @leakValue(i32 noundef %0) #0 {
+  %2 = alloca ptr, align 8
   %3 = alloca i64, align 8
-  %4 = alloca ptr, align 8
-  %5 = alloca i64, align 8
+  %4 = alloca i64, align 8
+  %5 = alloca ptr, align 8
   %6 = alloca i64, align 8
-  %7 = alloca i32, align 4
+  %7 = alloca i64, align 8
   %8 = alloca i32, align 4
   %9 = alloca i32, align 4
-  %10 = alloca i64, align 8
-  store i32 0, ptr %7, align 4
+  %10 = alloca i32, align 4
+  %11 = alloca i32, align 4
+  %12 = alloca i64, align 8
+  store i32 %0, ptr %8, align 4
+  store i32 0, ptr %9, align 4
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !8
-  store i32 40, ptr %8, align 4
-  br label %11
+  store i32 40, ptr %10, align 4
+  br label %13
 
-11:                                               ; preds = %24, %0
-  %12 = load i32, ptr %8, align 4
-  %13 = icmp sge i32 %12, 0
-  br i1 %13, label %14, label %27
+13:                                               ; preds = %26, %1
+  %14 = load i32, ptr %10, align 4
+  %15 = icmp sge i32 %14, 0
+  br i1 %15, label %16, label %29
 
-14:                                               ; preds = %11
-  %15 = load i32, ptr %8, align 4
-  %16 = icmp eq i32 %15, 0
-  %17 = zext i1 %16 to i32
-  %18 = mul nsw i32 %17, 10
-  store i32 %18, ptr %9, align 4
-  %19 = load ptr, ptr @arr_context, align 2048
-  call void @cache_remove(ptr noundef %19)
-  %20 = load ptr, ptr @val_context, align 2048
-  call void @cache_remove(ptr noundef %20)
-  %21 = load ptr, ptr @val2_context, align 2048
+16:                                               ; preds = %13
+  %17 = load i32, ptr %10, align 4
+  %18 = icmp eq i32 %17, 0
+  %19 = zext i1 %18 to i32
+  %20 = mul nsw i32 %19, 10
+  store i32 %20, ptr %11, align 4
+  %21 = load ptr, ptr @arr_context, align 2048
   call void @cache_remove(ptr noundef %21)
+  %22 = load ptr, ptr @val_context, align 2048
+  call void @cache_remove(ptr noundef %22)
+  %23 = load ptr, ptr @val2_context, align 2048
+  call void @cache_remove(ptr noundef %23)
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !9
-  %22 = load i32, ptr @secret, align 2048
-  %23 = load i32, ptr %9, align 4
-  call void @victim_function(i32 noundef %22, i32 noundef %23)
+  %24 = load i32, ptr %8, align 4
+  %25 = load i32, ptr %11, align 4
+  call void @victim_function(i32 noundef %24, i32 noundef %25)
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !10
-  br label %24
+  br label %26
 
-24:                                               ; preds = %14
-  %25 = load i32, ptr %8, align 4
-  %26 = add nsw i32 %25, -1
-  store i32 %26, ptr %8, align 4
-  br label %11, !llvm.loop !11
+26:                                               ; preds = %16
+  %27 = load i32, ptr %10, align 4
+  %28 = add nsw i32 %27, -1
+  store i32 %28, ptr %10, align 4
+  br label %13, !llvm.loop !11
 
-27:                                               ; preds = %11
-  store ptr @val, ptr %1, align 8
+29:                                               ; preds = %13
+  store ptr @val, ptr %2, align 8
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !12
-  %28 = load i64, ptr @timestamp, align 8
-  store i64 %28, ptr %2, align 8
-  call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !13
-  %29 = load ptr, ptr %1, align 8
-  call void asm sideeffect "LDR x10, [$0]", "r,~{x10},~{memory}"(ptr %29) #3, !srcloc !14
-  call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !15
   %30 = load i64, ptr @timestamp, align 8
   store i64 %30, ptr %3, align 8
-  call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !16
-  %31 = load i64, ptr %3, align 8
-  %32 = load i64, ptr %2, align 8
-  %33 = sub i64 %31, %32
-  store i64 %33, ptr @time1, align 8
-  store ptr @val2, ptr %4, align 8
-  call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !12
-  %34 = load i64, ptr @timestamp, align 8
-  store i64 %34, ptr %5, align 8
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !13
-  %35 = load ptr, ptr %4, align 8
-  call void asm sideeffect "LDR x10, [$0]", "r,~{x10},~{memory}"(ptr %35) #3, !srcloc !14
+  %31 = load ptr, ptr %2, align 8
+  call void asm sideeffect "LDR x10, [$0]", "r,~{x10},~{memory}"(ptr %31) #3, !srcloc !14
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !15
+  %32 = load i64, ptr @timestamp, align 8
+  store i64 %32, ptr %4, align 8
+  call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !16
+  %33 = load i64, ptr %4, align 8
+  %34 = load i64, ptr %3, align 8
+  %35 = sub i64 %33, %34
+  store i64 %35, ptr @time1, align 8
+  store ptr @val2, ptr %5, align 8
+  call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !12
   %36 = load i64, ptr @timestamp, align 8
   store i64 %36, ptr %6, align 8
+  call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !13
+  %37 = load ptr, ptr %5, align 8
+  call void asm sideeffect "LDR x10, [$0]", "r,~{x10},~{memory}"(ptr %37) #3, !srcloc !14
+  call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !15
+  %38 = load i64, ptr @timestamp, align 8
+  store i64 %38, ptr %7, align 8
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !16
-  %37 = load i64, ptr %6, align 8
-  %38 = load i64, ptr %5, align 8
-  %39 = sub i64 %37, %38
-  store i64 %39, ptr @time2, align 8
+  %39 = load i64, ptr %7, align 8
+  %40 = load i64, ptr %6, align 8
+  %41 = sub i64 %39, %40
+  store i64 %41, ptr @time2, align 8
   ret void
 }
 
@@ -189,103 +188,105 @@ define i32 @main(i32 noundef %0, ptr noundef %1) #0 {
   %4 = alloca i32, align 4
   %5 = alloca ptr, align 8
   %6 = alloca i32, align 4
-  %7 = alloca [32 x i64], align 8
+  %7 = alloca i32, align 4
   %8 = alloca [32 x i64], align 8
-  %9 = alloca i32, align 4
+  %9 = alloca [32 x i64], align 8
   %10 = alloca i32, align 4
   %11 = alloca i32, align 4
+  %12 = alloca i32, align 4
   store i32 0, ptr %3, align 4
   store i32 %0, ptr %4, align 4
   store ptr %1, ptr %5, align 8
   call void @timer_start()
-  %12 = load ptr, ptr %5, align 8
-  %13 = getelementptr inbounds ptr, ptr %12, i64 1
-  %14 = load ptr, ptr %13, align 8
-  %15 = call i32 @atoi(ptr noundef %14)
-  store i32 %15, ptr @secret, align 2048
-  store i32 0, ptr %6, align 4
+  %13 = load ptr, ptr %5, align 8
+  %14 = getelementptr inbounds ptr, ptr %13, i64 1
+  %15 = load ptr, ptr %14, align 8
+  %16 = call i32 @atoi(ptr noundef %15)
+  store i32 %16, ptr %6, align 4
+  store i32 0, ptr %7, align 4
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !17
   call void @setup()
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !18
-  store i32 0, ptr %9, align 4
-  br label %16
-
-16:                                               ; preds = %28, %2
-  %17 = load i32, ptr %9, align 4
-  %18 = icmp slt i32 %17, 32
-  br i1 %18, label %19, label %31
-
-19:                                               ; preds = %16
-  call void @leakValue()
-  %20 = load i64, ptr @time1, align 8
-  %21 = load i32, ptr %9, align 4
-  %22 = sext i32 %21 to i64
-  %23 = getelementptr inbounds [32 x i64], ptr %7, i64 0, i64 %22
-  store i64 %20, ptr %23, align 8
-  %24 = load i64, ptr @time2, align 8
-  %25 = load i32, ptr %9, align 4
-  %26 = sext i32 %25 to i64
-  %27 = getelementptr inbounds [32 x i64], ptr %8, i64 0, i64 %26
-  store i64 %24, ptr %27, align 8
-  br label %28
-
-28:                                               ; preds = %19
-  %29 = load i32, ptr %9, align 4
-  %30 = add nsw i32 %29, 1
-  store i32 %30, ptr %9, align 4
-  br label %16, !llvm.loop !19
-
-31:                                               ; preds = %16
   store i32 0, ptr %10, align 4
-  br label %32
+  br label %17
 
-32:                                               ; preds = %41, %31
-  %33 = load i32, ptr %10, align 4
-  %34 = icmp slt i32 %33, 32
-  br i1 %34, label %35, label %44
+17:                                               ; preds = %30, %2
+  %18 = load i32, ptr %10, align 4
+  %19 = icmp slt i32 %18, 32
+  br i1 %19, label %20, label %33
 
-35:                                               ; preds = %32
-  %36 = load i32, ptr %10, align 4
-  %37 = sext i32 %36 to i64
-  %38 = getelementptr inbounds [32 x i64], ptr %7, i64 0, i64 %37
-  %39 = load i64, ptr %38, align 8
-  %40 = call i32 (ptr, ...) @printf(ptr noundef @.str, i64 noundef %39)
-  br label %41
+20:                                               ; preds = %17
+  %21 = load i32, ptr %6, align 4
+  call void @leakValue(i32 noundef %21)
+  %22 = load i64, ptr @time1, align 8
+  %23 = load i32, ptr %10, align 4
+  %24 = sext i32 %23 to i64
+  %25 = getelementptr inbounds [32 x i64], ptr %8, i64 0, i64 %24
+  store i64 %22, ptr %25, align 8
+  %26 = load i64, ptr @time2, align 8
+  %27 = load i32, ptr %10, align 4
+  %28 = sext i32 %27 to i64
+  %29 = getelementptr inbounds [32 x i64], ptr %9, i64 0, i64 %28
+  store i64 %26, ptr %29, align 8
+  br label %30
 
-41:                                               ; preds = %35
-  %42 = load i32, ptr %10, align 4
-  %43 = add nsw i32 %42, 1
-  store i32 %43, ptr %10, align 4
-  br label %32, !llvm.loop !20
+30:                                               ; preds = %20
+  %31 = load i32, ptr %10, align 4
+  %32 = add nsw i32 %31, 1
+  store i32 %32, ptr %10, align 4
+  br label %17, !llvm.loop !19
 
-44:                                               ; preds = %32
-  %45 = call i32 (ptr, ...) @printf(ptr noundef @.str.1)
+33:                                               ; preds = %17
   store i32 0, ptr %11, align 4
-  br label %46
+  br label %34
 
-46:                                               ; preds = %55, %44
-  %47 = load i32, ptr %11, align 4
-  %48 = icmp slt i32 %47, 32
-  br i1 %48, label %49, label %58
+34:                                               ; preds = %43, %33
+  %35 = load i32, ptr %11, align 4
+  %36 = icmp slt i32 %35, 32
+  br i1 %36, label %37, label %46
 
-49:                                               ; preds = %46
-  %50 = load i32, ptr %11, align 4
-  %51 = sext i32 %50 to i64
-  %52 = getelementptr inbounds [32 x i64], ptr %8, i64 0, i64 %51
-  %53 = load i64, ptr %52, align 8
-  %54 = call i32 (ptr, ...) @printf(ptr noundef @.str, i64 noundef %53)
-  br label %55
+37:                                               ; preds = %34
+  %38 = load i32, ptr %11, align 4
+  %39 = sext i32 %38 to i64
+  %40 = getelementptr inbounds [32 x i64], ptr %8, i64 0, i64 %39
+  %41 = load i64, ptr %40, align 8
+  %42 = call i32 (ptr, ...) @printf(ptr noundef @.str, i64 noundef %41)
+  br label %43
 
-55:                                               ; preds = %49
-  %56 = load i32, ptr %11, align 4
-  %57 = add nsw i32 %56, 1
-  store i32 %57, ptr %11, align 4
-  br label %46, !llvm.loop !21
+43:                                               ; preds = %37
+  %44 = load i32, ptr %11, align 4
+  %45 = add nsw i32 %44, 1
+  store i32 %45, ptr %11, align 4
+  br label %34, !llvm.loop !20
 
-58:                                               ; preds = %46
+46:                                               ; preds = %34
+  %47 = call i32 (ptr, ...) @printf(ptr noundef @.str.1)
+  store i32 0, ptr %12, align 4
+  br label %48
+
+48:                                               ; preds = %57, %46
+  %49 = load i32, ptr %12, align 4
+  %50 = icmp slt i32 %49, 32
+  br i1 %50, label %51, label %60
+
+51:                                               ; preds = %48
+  %52 = load i32, ptr %12, align 4
+  %53 = sext i32 %52 to i64
+  %54 = getelementptr inbounds [32 x i64], ptr %9, i64 0, i64 %53
+  %55 = load i64, ptr %54, align 8
+  %56 = call i32 (ptr, ...) @printf(ptr noundef @.str, i64 noundef %55)
+  br label %57
+
+57:                                               ; preds = %51
+  %58 = load i32, ptr %12, align 4
+  %59 = add nsw i32 %58, 1
+  store i32 %59, ptr %12, align 4
+  br label %48, !llvm.loop !21
+
+60:                                               ; preds = %48
   call void @timer_stop()
-  %59 = load i32, ptr %3, align 4
-  ret i32 %59
+  %61 = load i32, ptr %3, align 4
+  ret i32 %61
 }
 
 ; Function Attrs: speculative_load_hardening
@@ -316,17 +317,17 @@ attributes #3 = { nounwind }
 !5 = !{!"clang version 17.0.6"}
 !6 = distinct !{!6, !7}
 !7 = !{!"llvm.loop.mustprogress"}
-!8 = !{i64 2151209002, i64 2151209011}
-!9 = !{i64 2151209053, i64 2151209062}
-!10 = !{i64 2151209101, i64 2151209110}
+!8 = !{i64 2151209037, i64 2151209046}
+!9 = !{i64 2151209088, i64 2151209097}
+!10 = !{i64 2151209136, i64 2151209145}
 !11 = distinct !{!11, !7}
-!12 = !{i64 2151169816, i64 2151169825}
-!13 = !{i64 2151169884, i64 2151169893}
-!14 = !{i64 2151169932}
-!15 = !{i64 2151170015, i64 2151170024}
-!16 = !{i64 2151170081, i64 2151170090}
-!17 = !{i64 2151209149, i64 2151209158}
-!18 = !{i64 2151209197, i64 2151209206}
+!12 = !{i64 2151169851, i64 2151169860}
+!13 = !{i64 2151169919, i64 2151169928}
+!14 = !{i64 2151169967}
+!15 = !{i64 2151170050, i64 2151170059}
+!16 = !{i64 2151170116, i64 2151170125}
+!17 = !{i64 2151209184, i64 2151209193}
+!18 = !{i64 2151209232, i64 2151209241}
 !19 = distinct !{!19, !7}
 !20 = distinct !{!20, !7}
 !21 = distinct !{!21, !7}
