@@ -28,24 +28,25 @@ cache_ctx_t secret_context __attribute__((aligned(2048)));
 cache_ctx_t is_public_context __attribute__((aligned(2048)));
 cache_ctx_t arr_context __attribute__((aligned(2048)));
 
-uint64_t tmp2, tmp3;
-
 
 int secret __attribute__((aligned(2048)))= 0xdeadbabe ;
 
 //32 MB = 32 * 2^20 = 2 ^ 5 * 2^20 = 2^25
 
-int __attribute__((noinline, used)) victim_function(register int secret_val, int isPublic)
+__attribute__((used))
+void victim_function(register int secret_val, int isPublic)
 {
     if (isPublic < array[0x2 * STRIDE]) {
         if(secret == 0) {
+          double tmp2;
           memcpy((void*)&tmp2, (void *)&val, sizeof(tmp2));
         }
         else {
+          double tmp3; 
           memcpy((void*)&tmp3, (void *)&val2, sizeof(tmp3));
         }
   }
-  return 0;
+  return ;
 }
 
 
@@ -154,8 +155,6 @@ int main(int argc, char *argv[])
     }
     
     timer_stop();
-
-  printf("%d, %d", tmp2, tmp3);
 
 }
 

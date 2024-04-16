@@ -83,9 +83,12 @@ initialize_list(char *start, uint64_t size, uint64_t offset)
 {
 	uint64_t off = 0;
 	Elem* last = NULL;
+	int i = 0;
 	for (off = offset; off < size - sizeof(Elem); off += page_size)
 	{
+		i++;
 		Elem* cur = (Elem*)(start + off);
+		*cur;
 		cur->set = -2;
 		cur->delta = 0;
 		cur->prev = last;

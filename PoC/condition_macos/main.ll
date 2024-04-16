@@ -7,8 +7,6 @@ target triple = "arm64-apple-macosx12.0.0"
 @val2 = global i64 19088743, align 4096
 @secret = global i32 -559039810, align 2048
 @array = internal global [131072 x i8] zeroinitializer, align 2048
-@tmp2 = global i64 0, align 8
-@tmp3 = global i64 0, align 8
 @array_ctx = global ptr null, align 8
 @arr_context = global ptr null, align 2048
 @val_context = global ptr null, align 2048
@@ -18,48 +16,49 @@ target triple = "arm64-apple-macosx12.0.0"
 @time2 = global i64 0, align 8
 @.str = private unnamed_addr constant [7 x i8] c"%3lld \00", align 1
 @.str.1 = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
-@.str.2 = private unnamed_addr constant [7 x i8] c"%d, %d\00", align 1
 @is_public_context = global ptr null, align 2048
 @training_offset = global i64 0, align 8
 @timestamp = external global i64, align 8
 @llvm.used = appending global [1 x ptr] [ptr @victim_function], section "llvm.metadata"
 
-; Function Attrs: noinline nounwind ssp uwtable(sync)
-define i32 @victim_function(i32 noundef %0, i32 noundef %1) #0 {
+; Function Attrs: speculative_load_hardening
+define void @victim_function(i32 noundef %0, i32 noundef %1) #0 {
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
+  %5 = alloca double, align 8
+  %6 = alloca double, align 8
   store i32 %0, ptr %3, align 4
   store i32 %1, ptr %4, align 4
-  %5 = load i32, ptr %4, align 4
-  %6 = load i8, ptr getelementptr inbounds ([131072 x i8], ptr @array, i64 0, i64 1024), align 1024
-  %7 = zext i8 %6 to i32
-  %8 = icmp slt i32 %5, %7
-  br i1 %8, label %9, label %15
+  %7 = load i32, ptr %4, align 4
+  %8 = load i8, ptr getelementptr inbounds ([131072 x i8], ptr @array, i64 0, i64 1024), align 1024
+  %9 = zext i8 %8 to i32
+  %10 = icmp slt i32 %7, %9
+  br i1 %10, label %11, label %17
 
-9:                                                ; preds = %2
-  %10 = load i32, ptr @secret, align 2048
-  %11 = icmp eq i32 %10, 0
-  br i1 %11, label %12, label %13
+11:                                               ; preds = %2
+  %12 = load i32, ptr @secret, align 2048
+  %13 = icmp eq i32 %12, 0
+  br i1 %13, label %14, label %15
 
-12:                                               ; preds = %9
-  call void @llvm.memcpy.p0.p0.i64(ptr align 8 @tmp2, ptr align 1 @val, i64 8, i1 false)
-  br label %14
+14:                                               ; preds = %11
+  call void @llvm.memcpy.p0.p0.i64(ptr align 8 %5, ptr align 1 @val, i64 8, i1 false)
+  br label %16
 
-13:                                               ; preds = %9
-  call void @llvm.memcpy.p0.p0.i64(ptr align 8 @tmp3, ptr align 1 @val2, i64 8, i1 false)
-  br label %14
+15:                                               ; preds = %11
+  call void @llvm.memcpy.p0.p0.i64(ptr align 8 %6, ptr align 1 @val2, i64 8, i1 false)
+  br label %16
 
-14:                                               ; preds = %13, %12
-  br label %15
+16:                                               ; preds = %15, %14
+  br label %17
 
-15:                                               ; preds = %14, %2
-  ret i32 0
+17:                                               ; preds = %16, %2
+  ret void
 }
 
 ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
 declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
 
-; Function Attrs: noinline nounwind ssp uwtable(sync)
+; Function Attrs: noinline nounwind speculative_load_hardening ssp uwtable(sync)
 define void @setup() #0 {
   %1 = alloca i32, align 4
   store i32 0, ptr %1, align 4
@@ -97,9 +96,10 @@ define void @setup() #0 {
   ret void
 }
 
+; Function Attrs: speculative_load_hardening
 declare ptr @cache_remove_prepare(ptr noundef) #2
 
-; Function Attrs: noinline nounwind ssp uwtable(sync)
+; Function Attrs: noinline nounwind speculative_load_hardening ssp uwtable(sync)
 define void @leakValue() #0 {
   %1 = alloca ptr, align 8
   %2 = alloca i64, align 8
@@ -116,10 +116,10 @@ define void @leakValue() #0 {
   store i32 40, ptr %8, align 4
   br label %11
 
-11:                                               ; preds = %25, %0
+11:                                               ; preds = %24, %0
   %12 = load i32, ptr %8, align 4
   %13 = icmp sge i32 %12, 0
-  br i1 %13, label %14, label %28
+  br i1 %13, label %14, label %27
 
 14:                                               ; preds = %11
   %15 = load i32, ptr %8, align 4
@@ -136,53 +136,54 @@ define void @leakValue() #0 {
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !9
   %22 = load i32, ptr @secret, align 2048
   %23 = load i32, ptr %9, align 4
-  %24 = call i32 @victim_function(i32 noundef %22, i32 noundef %23)
+  call void @victim_function(i32 noundef %22, i32 noundef %23)
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !10
-  br label %25
+  br label %24
 
-25:                                               ; preds = %14
-  %26 = load i32, ptr %8, align 4
-  %27 = add nsw i32 %26, -1
-  store i32 %27, ptr %8, align 4
+24:                                               ; preds = %14
+  %25 = load i32, ptr %8, align 4
+  %26 = add nsw i32 %25, -1
+  store i32 %26, ptr %8, align 4
   br label %11, !llvm.loop !11
 
-28:                                               ; preds = %11
+27:                                               ; preds = %11
   store ptr @val, ptr %1, align 8
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !12
-  %29 = load i64, ptr @timestamp, align 8
-  store i64 %29, ptr %2, align 8
+  %28 = load i64, ptr @timestamp, align 8
+  store i64 %28, ptr %2, align 8
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !13
-  %30 = load ptr, ptr %1, align 8
-  call void asm sideeffect "LDR x10, [$0]", "r,~{x10},~{memory}"(ptr %30) #3, !srcloc !14
+  %29 = load ptr, ptr %1, align 8
+  call void asm sideeffect "LDR x10, [$0]", "r,~{x10},~{memory}"(ptr %29) #3, !srcloc !14
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !15
-  %31 = load i64, ptr @timestamp, align 8
-  store i64 %31, ptr %3, align 8
+  %30 = load i64, ptr @timestamp, align 8
+  store i64 %30, ptr %3, align 8
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !16
-  %32 = load i64, ptr %3, align 8
-  %33 = load i64, ptr %2, align 8
-  %34 = sub i64 %32, %33
-  store i64 %34, ptr @time1, align 8
+  %31 = load i64, ptr %3, align 8
+  %32 = load i64, ptr %2, align 8
+  %33 = sub i64 %31, %32
+  store i64 %33, ptr @time1, align 8
   store ptr @val2, ptr %4, align 8
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !12
-  %35 = load i64, ptr @timestamp, align 8
-  store i64 %35, ptr %5, align 8
+  %34 = load i64, ptr @timestamp, align 8
+  store i64 %34, ptr %5, align 8
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !13
-  %36 = load ptr, ptr %4, align 8
-  call void asm sideeffect "LDR x10, [$0]", "r,~{x10},~{memory}"(ptr %36) #3, !srcloc !14
+  %35 = load ptr, ptr %4, align 8
+  call void asm sideeffect "LDR x10, [$0]", "r,~{x10},~{memory}"(ptr %35) #3, !srcloc !14
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !15
-  %37 = load i64, ptr @timestamp, align 8
-  store i64 %37, ptr %6, align 8
+  %36 = load i64, ptr @timestamp, align 8
+  store i64 %36, ptr %6, align 8
   call void asm sideeffect "DMB SY\0AISB SY", "~{memory}"() #3, !srcloc !16
-  %38 = load i64, ptr %6, align 8
-  %39 = load i64, ptr %5, align 8
-  %40 = sub i64 %38, %39
-  store i64 %40, ptr @time2, align 8
+  %37 = load i64, ptr %6, align 8
+  %38 = load i64, ptr %5, align 8
+  %39 = sub i64 %37, %38
+  store i64 %39, ptr @time2, align 8
   ret void
 }
 
+; Function Attrs: speculative_load_hardening
 declare void @cache_remove(ptr noundef) #2
 
-; Function Attrs: noinline nounwind ssp uwtable(sync)
+; Function Attrs: noinline nounwind speculative_load_hardening ssp uwtable(sync)
 define i32 @main(i32 noundef %0, ptr noundef %1) #0 {
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
@@ -283,24 +284,25 @@ define i32 @main(i32 noundef %0, ptr noundef %1) #0 {
 
 58:                                               ; preds = %46
   call void @timer_stop()
-  %59 = load i64, ptr @tmp2, align 8
-  %60 = load i64, ptr @tmp3, align 8
-  %61 = call i32 (ptr, ...) @printf(ptr noundef @.str.2, i64 noundef %59, i64 noundef %60)
-  %62 = load i32, ptr %3, align 4
-  ret i32 %62
+  %59 = load i32, ptr %3, align 4
+  ret i32 %59
 }
 
+; Function Attrs: speculative_load_hardening
 declare void @timer_start(...) #2
 
+; Function Attrs: speculative_load_hardening
 declare i32 @atoi(ptr noundef) #2
 
+; Function Attrs: speculative_load_hardening
 declare i32 @printf(ptr noundef, ...) #2
 
+; Function Attrs: speculative_load_hardening
 declare void @timer_stop(...) #2
 
-attributes #0 = { noinline nounwind ssp uwtable(sync) "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+crc,+dotprod,+fp-armv8,+fp16fml,+fullfp16,+lse,+neon,+ras,+rcpc,+rdm,+sha2,+sha3,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8.5a,+v8a,+zcm,+zcz" }
+attributes #0 = { noinline nounwind speculative_load_hardening ssp uwtable(sync) "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+crc,+dotprod,+fp-armv8,+fp16fml,+fullfp16,+lse,+neon,+ras,+rcpc,+rdm,+sha2,+sha3,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8.5a,+v8a,+zcm,+zcz" }
 attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
-attributes #2 = { "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+crc,+dotprod,+fp-armv8,+fp16fml,+fullfp16,+lse,+neon,+ras,+rcpc,+rdm,+sha2,+sha3,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8.5a,+v8a,+zcm,+zcz" }
+attributes #2 = { speculative_load_hardening "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+crc,+dotprod,+fp-armv8,+fp16fml,+fullfp16,+lse,+neon,+ras,+rcpc,+rdm,+sha2,+sha3,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8.5a,+v8a,+zcm,+zcz" }
 attributes #3 = { nounwind }
 
 !llvm.module.flags = !{!0, !1, !2, !3, !4}
@@ -314,17 +316,17 @@ attributes #3 = { nounwind }
 !5 = !{!"clang version 17.0.6"}
 !6 = distinct !{!6, !7}
 !7 = !{!"llvm.loop.mustprogress"}
-!8 = !{i64 2151209020, i64 2151209029}
-!9 = !{i64 2151209071, i64 2151209080}
-!10 = !{i64 2151209119, i64 2151209128}
+!8 = !{i64 2151209002, i64 2151209011}
+!9 = !{i64 2151209053, i64 2151209062}
+!10 = !{i64 2151209101, i64 2151209110}
 !11 = distinct !{!11, !7}
-!12 = !{i64 2151169834, i64 2151169843}
-!13 = !{i64 2151169902, i64 2151169911}
-!14 = !{i64 2151169950}
-!15 = !{i64 2151170033, i64 2151170042}
-!16 = !{i64 2151170099, i64 2151170108}
-!17 = !{i64 2151209167, i64 2151209176}
-!18 = !{i64 2151209215, i64 2151209224}
+!12 = !{i64 2151169816, i64 2151169825}
+!13 = !{i64 2151169884, i64 2151169893}
+!14 = !{i64 2151169932}
+!15 = !{i64 2151170015, i64 2151170024}
+!16 = !{i64 2151170081, i64 2151170090}
+!17 = !{i64 2151209149, i64 2151209158}
+!18 = !{i64 2151209197, i64 2151209206}
 !19 = distinct !{!19, !7}
 !20 = distinct !{!20, !7}
 !21 = distinct !{!21, !7}

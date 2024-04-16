@@ -1,0 +1,14 @@
+digraph "CFG for 'setup' function" {
+	label="CFG for 'setup' function";
+
+	Node0x12de38670 [shape=record,color="#3d50c3ff", style=filled, fillcolor="#b9d0f970",label="{%0:\l  %1 = alloca i32, align 4\l  store i32 0, ptr %1, align 4\l  br label %2\l}"];
+	Node0x12de38670 -> Node0x12de386b0;
+	Node0x12de386b0 [shape=record,color="#b70d28ff", style=filled, fillcolor="#b70d2870",label="{%2:\l2:                                                \l  %3 = load i32, ptr %1, align 4\l  %4 = sext i32 %3 to i64\l  %5 = icmp ult i64 %4, 131072\l  br i1 %5, label %6, label %13\l|{<s0>T|<s1>F}}"];
+	Node0x12de386b0:s0 -> Node0x12de389f0;
+	Node0x12de386b0:s1 -> Node0x12de38a70;
+	Node0x12de389f0 [shape=record,color="#b70d28ff", style=filled, fillcolor="#bb1b2c70",label="{%6:\l6:                                                \l  %7 = load i32, ptr %1, align 4\l  %8 = sext i32 %7 to i64\l  %9 = getelementptr inbounds [131072 x i8], ptr @array, i64 0, i64 %8\l  store i8 0, ptr %9, align 1\l  br label %10\l}"];
+	Node0x12de389f0 -> Node0x12de387e0;
+	Node0x12de387e0 [shape=record,color="#b70d28ff", style=filled, fillcolor="#bb1b2c70",label="{%10:\l10:                                               \l  %11 = load i32, ptr %1, align 4\l  %12 = add nsw i32 %11, 1\l  store i32 %12, ptr %1, align 4\l  br label %2, !llvm.loop !6\l}"];
+	Node0x12de387e0 -> Node0x12de386b0;
+	Node0x12de38a70 [shape=record,color="#3d50c3ff", style=filled, fillcolor="#b9d0f970",label="{%13:\l13:                                               \l  store i8 10, ptr getelementptr inbounds ([131072 x i8], ptr @array, i64 0,\l... i64 1024), align 1024\l  %14 = call ptr @cache_remove_prepare(ptr noundef getelementptr inbounds\l... ([131072 x i8], ptr @array, i64 0, i64 1024))\l  store ptr %14, ptr @arr_context, align 2048\l  %15 = call ptr @cache_remove_prepare(ptr noundef @val)\l  store ptr %15, ptr @val_context, align 2048\l  %16 = call ptr @cache_remove_prepare(ptr noundef @val2)\l  store ptr %16, ptr @val2_context, align 2048\l  %17 = call ptr @cache_remove_prepare(ptr noundef @secret)\l  store ptr %17, ptr @secret_context, align 2048\l  ret void\l}"];
+}
