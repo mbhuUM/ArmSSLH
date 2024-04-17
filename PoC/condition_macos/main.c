@@ -37,7 +37,7 @@ __attribute__((used))
 int victim_function(register int secret_val, int isPublic)
 {
     if (isPublic < array[0x2 * STRIDE]) {
-        if(secret_val) {
+        if(secret) {
           double tmp2;
           memcpy((void*)&tmp2, (void *)&val, sizeof(tmp2));
           return tmp2;

@@ -466,7 +466,6 @@ bool AArch64SpeculationHardening::makeGPRSpeculationSafe(
   const bool Is64Bit = AArch64::GPR64allRegClass.contains(Reg);
   LLVM_DEBUG(dbgs() << "About to harden register : " << Reg << "\n");
 
-  llvm::outs() << "About to harden register : " << Reg << "\n";
   BuildMI(MBB, MBBI, MI.getDebugLoc(),
           TII->get(Is64Bit ? AArch64::SpeculationSafeValueX
                            : AArch64::SpeculationSafeValueW))
@@ -489,8 +488,10 @@ bool AArch64SpeculationHardening::slhLoads(MachineBasicBlock &MBB) {
     MachineInstr &MI = *MBBI;
     NextMBBI = std::next(MBBI);
     // Only harden loaded values or addresses used in loads.
-    if (!MI.mayLoad())
+    if (!MI.mayLoad() && !MI.mayStore())
       continue;
+
+    bool isStore = MI.mayStore();
 
     LLVM_DEBUG(dbgs() << "About to harden: " << MI);
 
@@ -510,12 +511,12 @@ bool AArch64SpeculationHardening::slhLoads(MachineBasicBlock &MBB) {
     // hardened, leading to this load not able to execute on a miss-speculated
     // path.
 
-    for (auto Def : MI.defs()) {
-      if (Def.getReg() == AArch64::SP) {
-        AllDefsAreGPR = false;
-      }
-    }
-    bool HardenLoadedData = AllDefsAreGPR;
+    // for (auto Def : MI.defs()) {
+    //   if (Def.getReg() == AArch64::SP) {
+    //     AllDefsAreGPR = false;
+    //   }
+    // }
+    bool HardenLoadedData = AllDefsAreGPR && !isStore;
     bool HardenAddressLoadedFrom = !HardenLoadedData;
 
     // First remove registers from AlreadyMaskedRegisters if their value is
@@ -532,14 +533,7 @@ bool AArch64SpeculationHardening::slhLoads(MachineBasicBlock &MBB) {
     // https://llvm.org/docs/SpeculativeLoadHardening.html
 
     if (HardenLoadedData) {
-      // llvm::outs() << "JAJAJAJA: ";
-      // MI.print(llvm::outs());
       for (auto Def : MI.defs()) {
-        if (Def.getReg() == AArch64::SP) {
-          llvm::outs() << "STACKPOINTERSTACKPOINTSERS: ";
-          MI.print(llvm::outs());
-          std::cout << "FDSFDSF: " << Def.getReg() << AArch64::GPR64allRegClass.contains(Def.getReg()) << AArch64::GPR64allRegClass.contains(Def.getReg()) << std::endl;
-        }
         if (Def.isDead())
           // Do not mask a register that is not used further.
           continue;
@@ -552,26 +546,34 @@ bool AArch64SpeculationHardening::slhLoads(MachineBasicBlock &MBB) {
       }
     }
     else if (HardenAddressLoadedFrom) {
-      for (auto Use : MI.uses()) {
-        if (!Use.isReg())
-          continue;
-        Register Reg = Use.getReg();
-        llvm::outs() << Reg << '\n';
-        MI.print(llvm::outs());
-        // Some loads of floating point data have implicit defs/uses on a
-        // super register of that floating point data. Some examples:
-        // $s0 = LDRSui $sp, 22, implicit-def $q0
-        // $q0 = LD1i64 $q0, 1, renamable $x0
-        // We need to filter out these uses for non-GPR register which occur
-        // because the load partially fills a non-GPR register with the loaded
-        // data. Just skipping all non-GPR registers is safe (for now) as all
-        // AArch64 load instructions only use GPR registers to perform the
-        // address calculation. FIXME: However that might change once we can
-        // produce SVE gather instructions.
-        if (!(AArch64::GPR32allRegClass.contains(Reg) ||
-              AArch64::GPR64allRegClass.contains(Reg)))
-          continue;
-        Modified |= makeGPRSpeculationSafe(MBB, MBBI, MI, Reg);
+      if (isStore) {
+        if (MI.getNumOperands() > 0) {
+          const MachineOperand &BaseRegOp = MI.getOperand(0);
+          if (BaseRegOp.isReg()) {
+            Modified |= makeGPRSpeculationSafe(MBB, MBBI, MI, BaseRegOp.getReg());
+          }
+        }
+      }
+      else {
+        for (auto Use : MI.uses()) {
+          if (!Use.isReg())
+            continue;
+          Register Reg = Use.getReg();
+          // Some loads of floating point data have implicit defs/uses on a
+          // super register of that floating point data. Some examples:
+          // $s0 = LDRSui $sp, 22, implicit-def $q0
+          // $q0 = LD1i64 $q0, 1, renamable $x0
+          // We need to filter out these uses for non-GPR register which occur
+          // because the load partially fills a non-GPR register with the loaded
+          // data. Just skipping all non-GPR registers is safe (for now) as all
+          // AArch64 load instructions only use GPR registers to perform the
+          // address calculation. FIXME: However that might change once we can
+          // produce SVE gather instructions.
+          if (!(AArch64::GPR32allRegClass.contains(Reg) ||
+                AArch64::GPR64allRegClass.contains(Reg)))
+            continue;
+          Modified |= makeGPRSpeculationSafe(MBB, MBBI, MI, Reg);
+        }
       }
     }
   }
@@ -592,22 +594,11 @@ bool AArch64SpeculationHardening::slhConds(MachineBasicBlock &MBB) {
     NextMBBI = std::next(MBBI);
     
     unsigned int opcode = MI.getOpcode();
-    // bro idk bro TODO: TODO:
-    // TODO:
+    // FIXME: better cmpInst opcode detection
     if (opcode == 1507 || (opcode >= 6633 && opcode <= 6639) /*subs*/ || (opcode >= 1413 && opcode <= 1421) /*adds*/ || (opcode >= 1785 && opcode <= 1788) /*cmp*/) {
-      // found cmp things
-      
       // go thru operands
       for (auto Def : MI.defs()) {
-        // if (Def.isReg()) { // always true?
-          // llvm::outs() << MI.getOpcode() << " DAVIDPATHDAVIDPATH: ";
-        // MI.print(llvm::outs());
-        Modified |= makeGPRSpeculationSafe(MBB, NextMBBI, MI, Def.getReg());
-        // }
-        // check hardened alr ... nvm
-
-        // if reg ->
-        // if mem ->
+        Modified |= makeGPRSpeculationSafe(MBB, MBBI, MI, Def.getReg());
       }
     }
   }
@@ -735,8 +726,6 @@ bool AArch64SpeculationHardening::runOnMachineFunction(MachineFunction &MF) {
   UseControlFlowSpeculationBarrier = functionUsesHardeningRegister(MF);
 
   bool Modified = false;
-
-  std::cout << "--------------------------------iofdsnfosianfoidsangoindasngasod" <<std::endl;
 
   // Step 1: Enable automatic insertion of SpeculationSafeValue.
   if (HardenLoads) {

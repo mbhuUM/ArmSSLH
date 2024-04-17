@@ -18,7 +18,8 @@ _victim_function:                       ; @victim_function
 	tbnz	w8, #0, LBB0_4
 	b	LBB0_1
 LBB0_1:
-	ldr	w8, [sp, #24]
+	adrp	x8, _secret@PAGE
+	mov	w8, [x8, _secret@PAGEOFF]
 	subs	w8, w8, #0
 	cset	w8, eq
 	tbnz	w8, #0, LBB0_3

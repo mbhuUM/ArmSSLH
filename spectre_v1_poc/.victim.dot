@@ -1,0 +1,10 @@
+digraph "CFG for 'victim' function" {
+	label="CFG for 'victim' function";
+
+	Node0x600001635040 [shape=record,color="#b70d28ff", style=filled, fillcolor="#b70d2870",label="{%1:\l  %2 = alloca i64, align 8\l  %3 = alloca i32, align 4\l  %4 = alloca i64, align 8\l  store i64 %0, ptr %2, align 8\l  %5 = load i64, ptr %2, align 8\l  %6 = urem i64 %5, 4\l  %7 = mul i64 %6, 2\l  %8 = trunc i64 %7 to i32\l  store i32 %8, ptr %3, align 4\l  %9 = load i64, ptr %2, align 8\l  %10 = udiv i64 %9, 4\l  store i64 %10, ptr %4, align 8\l  %11 = load i64, ptr %4, align 8\l  %12 = load ptr, ptr @array_size, align 8\l  %13 = load i64, ptr %12, align 8\l  %14 = icmp ult i64 %11, %13\l  br i1 %14, label %15, label %28\l|{<s0>T|<s1>F}}"];
+	Node0x600001635040:s0 -> Node0x600001635080;
+	Node0x600001635040:s1 -> Node0x600001635100;
+	Node0x600001635080 [shape=record,color="#3d50c3ff", style=filled, fillcolor="#f59c7d70",label="{%15:\l15:                                               \l  %16 = load ptr, ptr @array2, align 8\l  %17 = load ptr, ptr @array1, align 8\l  %18 = load i64, ptr %4, align 8\l  %19 = getelementptr inbounds i8, ptr %17, i64 %18\l  %20 = load i8, ptr %19, align 1\l  %21 = sext i8 %20 to i32\l  %22 = load i32, ptr %3, align 4\l  %23 = ashr i32 %21, %22\l  %24 = and i32 %23, 3\l  %25 = mul nsw i32 %24, 512\l  %26 = sext i32 %25 to i64\l  %27 = getelementptr inbounds i8, ptr %16, i64 %26\l  call void asm sideeffect \"LDR x10, [$0]\", \"r,~\{x10\},~\{memory\}\"(ptr %27) #5,\l... !srcloc !6\l  br label %28\l}"];
+	Node0x600001635080 -> Node0x600001635100;
+	Node0x600001635100 [shape=record,color="#b70d28ff", style=filled, fillcolor="#b70d2870",label="{%28:\l28:                                               \l  ret void\l}"];
+}

@@ -24,7 +24,7 @@ target triple = "arm64-apple-macosx12.0.0"
 @timestamp = external global i64, align 8
 @llvm.used = appending global [1 x ptr] [ptr @victim_function], section "llvm.metadata"
 
-; Function Attrs: noinline nounwind ssp uwtable(sync)
+; Function Attrs: noinline nounwind speculative_load_hardening ssp uwtable(sync)
 define i32 @victim_function(i32 noundef %0, i32 noundef %1) #0 {
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
@@ -59,7 +59,7 @@ define i32 @victim_function(i32 noundef %0, i32 noundef %1) #0 {
 ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
 declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
 
-; Function Attrs: noinline nounwind ssp uwtable(sync)
+; Function Attrs: noinline nounwind speculative_load_hardening ssp uwtable(sync)
 define void @setup() #0 {
   %1 = alloca i32, align 4
   store i32 0, ptr %1, align 4
@@ -97,9 +97,10 @@ define void @setup() #0 {
   ret void
 }
 
+; Function Attrs: speculative_load_hardening
 declare ptr @cache_remove_prepare(ptr noundef) #2
 
-; Function Attrs: noinline nounwind ssp uwtable(sync)
+; Function Attrs: noinline nounwind speculative_load_hardening ssp uwtable(sync)
 define void @leakValue() #0 {
   %1 = alloca ptr, align 8
   %2 = alloca i64, align 8
@@ -180,9 +181,10 @@ define void @leakValue() #0 {
   ret void
 }
 
+; Function Attrs: speculative_load_hardening
 declare void @cache_remove(ptr noundef) #2
 
-; Function Attrs: noinline nounwind ssp uwtable(sync)
+; Function Attrs: noinline nounwind speculative_load_hardening ssp uwtable(sync)
 define i32 @main(i32 noundef %0, ptr noundef %1) #0 {
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
@@ -290,17 +292,21 @@ define i32 @main(i32 noundef %0, ptr noundef %1) #0 {
   ret i32 %62
 }
 
+; Function Attrs: speculative_load_hardening
 declare void @timer_start(...) #2
 
+; Function Attrs: speculative_load_hardening
 declare i32 @atoi(ptr noundef) #2
 
+; Function Attrs: speculative_load_hardening
 declare i32 @printf(ptr noundef, ...) #2
 
+; Function Attrs: speculative_load_hardening
 declare void @timer_stop(...) #2
 
-attributes #0 = { noinline nounwind ssp uwtable(sync) "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+crc,+dotprod,+fp-armv8,+fp16fml,+fullfp16,+lse,+neon,+ras,+rcpc,+rdm,+sha2,+sha3,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8.5a,+v8a,+zcm,+zcz" }
+attributes #0 = { noinline nounwind speculative_load_hardening ssp uwtable(sync) "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+crc,+dotprod,+fp-armv8,+fp16fml,+fullfp16,+lse,+neon,+ras,+rcpc,+rdm,+sha2,+sha3,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8.5a,+v8a,+zcm,+zcz" }
 attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
-attributes #2 = { "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+crc,+dotprod,+fp-armv8,+fp16fml,+fullfp16,+lse,+neon,+ras,+rcpc,+rdm,+sha2,+sha3,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8.5a,+v8a,+zcm,+zcz" }
+attributes #2 = { speculative_load_hardening "frame-pointer"="non-leaf" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="apple-m1" "target-features"="+aes,+crc,+dotprod,+fp-armv8,+fp16fml,+fullfp16,+lse,+neon,+ras,+rcpc,+rdm,+sha2,+sha3,+v8.1a,+v8.2a,+v8.3a,+v8.4a,+v8.5a,+v8a,+zcm,+zcz" }
 attributes #3 = { nounwind }
 
 !llvm.module.flags = !{!0, !1, !2, !3, !4}

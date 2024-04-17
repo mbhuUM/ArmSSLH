@@ -1,0 +1,14 @@
+digraph "CFG for 'leakByte' function" {
+	label="CFG for 'leakByte' function";
+
+	Node0x600001636d80 [shape=record,color="#3d50c3ff", style=filled, fillcolor="#b9d0f970",label="{%1:\l  %2 = alloca i64, align 8\l  %3 = alloca i64, align 8\l  %4 = alloca i32, align 4\l  %5 = alloca i32, align 4\l  store i64 %0, ptr %2, align 8\l  %6 = load i64, ptr %2, align 8\l  %7 = mul i64 %6, 4\l  store i64 %7, ptr %3, align 8\l  store i32 0, ptr %4, align 4\l  store i32 3, ptr %5, align 4\l  br label %8\l}"];
+	Node0x600001636d80 -> Node0x600001636e00;
+	Node0x600001636e00 [shape=record,color="#b70d28ff", style=filled, fillcolor="#b70d2870",label="{%8:\l8:                                                \l  %9 = load i32, ptr %5, align 4\l  %10 = icmp sge i32 %9, 0\l  br i1 %10, label %11, label %24\l|{<s0>T|<s1>F}}"];
+	Node0x600001636e00:s0 -> Node0x600001636dc0;
+	Node0x600001636e00:s1 -> Node0x600001636e80;
+	Node0x600001636dc0 [shape=record,color="#b70d28ff", style=filled, fillcolor="#bb1b2c70",label="{%11:\l11:                                               \l  %12 = load i32, ptr %4, align 4\l  %13 = shl i32 %12, 2\l  store i32 %13, ptr %4, align 4\l  %14 = load i64, ptr %3, align 8\l  %15 = load i32, ptr %5, align 4\l  %16 = sext i32 %15 to i64\l  %17 = add i64 %14, %16\l  %18 = call i32 @leakValue(i64 noundef %17)\l  %19 = load i32, ptr %4, align 4\l  %20 = or i32 %19, %18\l  store i32 %20, ptr %4, align 4\l  br label %21\l}"];
+	Node0x600001636dc0 -> Node0x600001636f00;
+	Node0x600001636f00 [shape=record,color="#b70d28ff", style=filled, fillcolor="#bb1b2c70",label="{%21:\l21:                                               \l  %22 = load i32, ptr %5, align 4\l  %23 = add nsw i32 %22, -1\l  store i32 %23, ptr %5, align 4\l  br label %8, !llvm.loop !6\l}"];
+	Node0x600001636f00 -> Node0x600001636e00;
+	Node0x600001636e80 [shape=record,color="#3d50c3ff", style=filled, fillcolor="#b9d0f970",label="{%24:\l24:                                               \l  %25 = load i32, ptr %4, align 4\l  ret i32 %25\l}"];
+}

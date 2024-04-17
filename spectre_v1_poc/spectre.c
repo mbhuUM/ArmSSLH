@@ -27,6 +27,7 @@ char * array2 = NULL;
 size_t* array_size = NULL;
 
 // victim function.
+__attribute__((used))
 void victim(size_t offset){
     int shift = (offset % OFFSETS_PER_BYTE) * BITS;
     size_t index = offset / OFFSETS_PER_BYTE;

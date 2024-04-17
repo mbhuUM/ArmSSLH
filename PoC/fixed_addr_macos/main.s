@@ -5,41 +5,73 @@
 _victim_function:                       ; @victim_function
 	.cfi_startproc
 ; %bb.0:
+	cmp	sp, #0
+	csetm	x16, ne
 	sub	sp, sp, #16
 	.cfi_def_cfa_offset 16
+	and	w0, w0, w16
+	csdb
 	str	w0, [sp, #12]
+	and	w1, w1, w16
+	csdb
 	str	w1, [sp, #8]
 	ldr	w8, [sp, #8]
 	adrp	x9, _array@PAGE
 	add	x9, x9, _array@PAGEOFF
 	ldrb	w9, [x9, #1024]
+	and	w9, w9, w16
+	and	w8, w8, w16
+	csdb
 	subs	w8, w8, w9
 	cset	w8, ge
-	tbnz	w8, #0, LBB0_5
-	b	LBB0_1
-LBB0_1:
+	and	w8, w8, #0x1
+	ands	w8, w8, #0x3
+	b.ne	LBB0_2
+; %bb.1:
+	csel	x16, x16, xzr, eq
+	b	LBB0_3
+LBB0_2:
+	csel	x16, x16, xzr, ne
+	b	LBB0_9
+LBB0_3:
 	ldr	w8, [sp, #12]
+	and	w8, w8, w16
+	csdb
 	subs	w8, w8, #0
 	cset	w8, eq
-	tbnz	w8, #0, LBB0_3
-	b	LBB0_2
-LBB0_2:
+	and	w8, w8, #0x1
+	ands	w8, w8, #0x3
+	b.ne	LBB0_5
+; %bb.4:
+	csel	x16, x16, xzr, eq
+	b	LBB0_6
+LBB0_5:
+	csel	x16, x16, xzr, ne
+	b	LBB0_7
+LBB0_6:
 	adrp	x8, _val@PAGE
 	ldr	x8, [x8, _val@PAGEOFF]
+	and	x8, x8, x16
 	adrp	x9, _tmp2@PAGE
+	csdb
 	str	x8, [x9, _tmp2@PAGEOFF]
-	b	LBB0_4
-LBB0_3:
+	b	LBB0_8
+LBB0_7:
 	adrp	x8, _val2@PAGE
 	ldr	x8, [x8, _val2@PAGEOFF]
+	and	x8, x8, x16
 	adrp	x9, _tmp3@PAGE
+	csdb
 	str	x8, [x9, _tmp3@PAGEOFF]
-	b	LBB0_4
-LBB0_4:
-	b	LBB0_5
-LBB0_5:
+	b	LBB0_8
+LBB0_8:
+	b	LBB0_9
+LBB0_9:
 	mov	w0, #0                          ; =0x0
 	add	sp, sp, #16
+	mov	x1, sp
+	and	x1, x1, x16
+	mov	sp, x1
 	ret
 	.cfi_endproc
                                         ; -- End function
@@ -48,58 +80,113 @@ LBB0_5:
 _setup:                                 ; @setup
 	.cfi_startproc
 ; %bb.0:
+	cmp	sp, #0
+	csetm	x16, ne
 	sub	sp, sp, #32
+	and	x29, x29, x16
+	csdb
 	stp	x29, x30, [sp, #16]             ; 16-byte Folded Spill
 	add	x29, sp, #16
 	.cfi_def_cfa w29, 16
 	.cfi_offset w30, -8
 	.cfi_offset w29, -16
+	and	wzr, wzr, w16
+	csdb
 	stur	wzr, [x29, #-4]
 	b	LBB1_1
 LBB1_1:                                 ; =>This Inner Loop Header: Depth=1
 	ldursw	x8, [x29, #-4]
+	and	x8, x8, x16
+	csdb
+	and	x8, x8, x16
+	csdb
 	subs	x8, x8, #32, lsl #12            ; =131072
 	cset	w8, hs
-	tbnz	w8, #0, LBB1_4
-	b	LBB1_2
-LBB1_2:                                 ;   in Loop: Header=BB1_1 Depth=1
+	and	w8, w8, #0x1
+	and	w8, w8, w16
+	csdb
+	ands	w8, w8, #0x3
+	b.ne	LBB1_3
+; %bb.2:                                ;   in Loop: Header=BB1_1 Depth=1
+	csel	x16, x16, xzr, eq
+	b	LBB1_4
+LBB1_3:
+	csel	x16, x16, xzr, ne
+	b	LBB1_6
+LBB1_4:                                 ;   in Loop: Header=BB1_1 Depth=1
 	ldursw	x9, [x29, #-4]
+	and	x9, x9, x16
 	adrp	x8, _array@PAGE
 	add	x8, x8, _array@PAGEOFF
+	csdb
 	add	x8, x8, x9
+	and	wzr, wzr, w16
+	csdb
 	strb	wzr, [x8]
-	b	LBB1_3
-LBB1_3:                                 ;   in Loop: Header=BB1_1 Depth=1
+	b	LBB1_5
+LBB1_5:                                 ;   in Loop: Header=BB1_1 Depth=1
 	ldur	w8, [x29, #-4]
+	and	w8, w8, w16
+	csdb
 	add	w8, w8, #1
 	stur	w8, [x29, #-4]
 	b	LBB1_1
-LBB1_4:
+LBB1_6:
 	adrp	x9, _array@PAGE
 	add	x9, x9, _array@PAGEOFF
 	add	x0, x9, #1024
 	mov	w8, #10                         ; =0xa
+	and	w8, w8, w16
+	csdb
 	strb	w8, [x9, #1024]
+	mov	x1, sp
+	and	x1, x1, x16
+	mov	sp, x1
 	bl	_cache_remove_prepare
+	cmp	sp, #0
+	csetm	x16, ne
 	adrp	x8, _arr_context@PAGE
+	and	x0, x0, x16
+	csdb
 	str	x0, [x8, _arr_context@PAGEOFF]
 	adrp	x0, _val@PAGE
 	add	x0, x0, _val@PAGEOFF
+	mov	x1, sp
+	and	x1, x1, x16
+	mov	sp, x1
 	bl	_cache_remove_prepare
+	cmp	sp, #0
+	csetm	x16, ne
 	adrp	x8, _val_context@PAGE
 	str	x0, [x8, _val_context@PAGEOFF]
 	adrp	x0, _val2@PAGE
 	add	x0, x0, _val2@PAGEOFF
+	mov	x1, sp
+	and	x1, x1, x16
+	mov	sp, x1
 	bl	_cache_remove_prepare
+	cmp	sp, #0
+	csetm	x16, ne
 	adrp	x8, _val2_context@PAGE
 	str	x0, [x8, _val2_context@PAGEOFF]
 	adrp	x0, _secret@PAGE
 	add	x0, x0, _secret@PAGEOFF
+	mov	x1, sp
+	and	x1, x1, x16
+	mov	sp, x1
 	bl	_cache_remove_prepare
+	cmp	sp, #0
+	csetm	x16, ne
 	adrp	x8, _secret_context@PAGE
 	str	x0, [x8, _secret_context@PAGEOFF]
 	ldp	x29, x30, [sp, #16]             ; 16-byte Folded Reload
+	and	x29, x29, x16
+	and	x30, x30, x16
 	add	sp, sp, #32
+	mov	x0, sp
+	and	x0, x0, x16
+	mov	sp, x0
+	csdb
 	ret
 	.cfi_endproc
                                         ; -- End function
@@ -108,64 +195,119 @@ LBB1_4:
 _leakValue:                             ; @leakValue
 	.cfi_startproc
 ; %bb.0:
+	cmp	sp, #0
+	csetm	x16, ne
 	sub	sp, sp, #96
+	and	x29, x29, x16
+	csdb
 	stp	x29, x30, [sp, #80]             ; 16-byte Folded Spill
 	add	x29, sp, #80
 	.cfi_def_cfa w29, 16
 	.cfi_offset w30, -8
 	.cfi_offset w29, -16
+	and	wzr, wzr, w16
+	csdb
 	str	wzr, [sp, #28]
 	; InlineAsm Start
 	dmb	sy
 	isb
 	; InlineAsm End
 	mov	w8, #40                         ; =0x28
+	and	w8, w8, w16
+	csdb
 	str	w8, [sp, #24]
 	b	LBB2_1
 LBB2_1:                                 ; =>This Inner Loop Header: Depth=1
 	ldr	w8, [sp, #24]
+	and	w8, w8, w16
+	csdb
 	subs	w8, w8, #0
 	cset	w8, lt
-	tbnz	w8, #0, LBB2_4
-	b	LBB2_2
-LBB2_2:                                 ;   in Loop: Header=BB2_1 Depth=1
+	and	w8, w8, #0x1
+	ands	w8, w8, #0x3
+	b.ne	LBB2_3
+; %bb.2:                                ;   in Loop: Header=BB2_1 Depth=1
+	csel	x16, x16, xzr, eq
+	b	LBB2_4
+LBB2_3:
+	csel	x16, x16, xzr, ne
+	b	LBB2_6
+LBB2_4:                                 ;   in Loop: Header=BB2_1 Depth=1
 	ldr	w8, [sp, #24]
+	and	w8, w8, w16
+	csdb
 	subs	w8, w8, #0
 	cset	w8, eq
 	and	w8, w8, #0x1
 	mov	w9, #10                         ; =0xa
 	mul	w8, w8, w9
+	and	w8, w8, w16
+	csdb
 	str	w8, [sp, #20]
 	adrp	x8, _arr_context@PAGE
 	ldr	x0, [x8, _arr_context@PAGEOFF]
+	and	x0, x0, x16
+	mov	x1, sp
+	and	x1, x1, x16
+	mov	sp, x1
+	csdb
 	bl	_cache_remove
+	cmp	sp, #0
+	csetm	x16, ne
 	adrp	x8, _val_context@PAGE
 	ldr	x0, [x8, _val_context@PAGEOFF]
+	and	x0, x0, x16
+	mov	x1, sp
+	and	x1, x1, x16
+	mov	sp, x1
+	csdb
 	bl	_cache_remove
+	cmp	sp, #0
+	csetm	x16, ne
 	adrp	x8, _val2_context@PAGE
 	ldr	x0, [x8, _val2_context@PAGEOFF]
+	and	x0, x0, x16
+	mov	x1, sp
+	and	x1, x1, x16
+	mov	sp, x1
+	csdb
 	bl	_cache_remove
+	cmp	sp, #0
+	csetm	x16, ne
 	; InlineAsm Start
 	dmb	sy
 	isb
 	; InlineAsm End
 	adrp	x8, _secret@PAGE
 	ldr	w0, [x8, _secret@PAGEOFF]
+	and	w0, w0, w16
 	ldr	w1, [sp, #20]
+	mov	x2, sp
+	and	x2, x2, x16
+	mov	sp, x2
+	csdb
 	bl	_victim_function
+	cmp	sp, #0
+	csetm	x16, ne
 	; InlineAsm Start
 	dmb	sy
 	isb
 	; InlineAsm End
-	b	LBB2_3
-LBB2_3:                                 ;   in Loop: Header=BB2_1 Depth=1
+	b	LBB2_5
+LBB2_5:                                 ;   in Loop: Header=BB2_1 Depth=1
 	ldr	w8, [sp, #24]
+	and	w8, w8, w16
+	csdb
 	subs	w8, w8, #1
+	and	w8, w8, w16
+	csdb
 	str	w8, [sp, #24]
 	b	LBB2_1
-LBB2_4:
+LBB2_6:
 	adrp	x8, _val@PAGE
 	add	x8, x8, _val@PAGEOFF
+	and	x8, x8, x16
+	csdb
 	stur	x8, [x29, #-8]
 	; InlineAsm Start
 	dmb	sy
@@ -173,13 +315,19 @@ LBB2_4:
 	; InlineAsm End
 	adrp	x8, _timestamp@GOTPAGE
 	ldr	x8, [x8, _timestamp@GOTPAGEOFF]
+	and	x8, x8, x16
+	csdb
 	ldr	x9, [x8]
+	and	x9, x9, x16
+	csdb
 	stur	x9, [x29, #-16]
 	; InlineAsm Start
 	dmb	sy
 	isb
 	; InlineAsm End
 	ldur	x9, [x29, #-8]
+	and	x9, x9, x16
+	csdb
 	; InlineAsm Start
 	ldr	x10, [x9]
 	; InlineAsm End
@@ -188,13 +336,20 @@ LBB2_4:
 	isb
 	; InlineAsm End
 	ldr	x9, [x8]
+	and	x9, x9, x16
+	csdb
 	stur	x9, [x29, #-24]
 	; InlineAsm Start
 	dmb	sy
 	isb
 	; InlineAsm End
 	ldur	x9, [x29, #-24]
+	and	x9, x9, x16
 	ldur	x10, [x29, #-16]
+	and	x10, x10, x16
+	csdb
+	and	x9, x9, x16
+	csdb
 	subs	x9, x9, x10
 	adrp	x10, _time1@PAGE
 	str	x9, [x10, _time1@PAGEOFF]
@@ -206,12 +361,16 @@ LBB2_4:
 	isb
 	; InlineAsm End
 	ldr	x9, [x8]
+	and	x9, x9, x16
+	csdb
 	str	x9, [sp, #40]
 	; InlineAsm Start
 	dmb	sy
 	isb
 	; InlineAsm End
 	ldur	x9, [x29, #-32]
+	and	x9, x9, x16
+	csdb
 	; InlineAsm Start
 	ldr	x10, [x9]
 	; InlineAsm End
@@ -220,6 +379,8 @@ LBB2_4:
 	isb
 	; InlineAsm End
 	ldr	x8, [x8]
+	and	x8, x8, x16
+	csdb
 	str	x8, [sp, #32]
 	; InlineAsm Start
 	dmb	sy
@@ -227,11 +388,21 @@ LBB2_4:
 	; InlineAsm End
 	ldr	x8, [sp, #32]
 	ldr	x9, [sp, #40]
+	and	x8, x8, x16
+	csdb
 	subs	x8, x8, x9
 	adrp	x9, _time2@PAGE
+	and	x8, x8, x16
+	csdb
 	str	x8, [x9, _time2@PAGEOFF]
 	ldp	x29, x30, [sp, #80]             ; 16-byte Folded Reload
+	and	x29, x29, x16
+	and	x30, x30, x16
 	add	sp, sp, #96
+	mov	x0, sp
+	and	x0, x0, x16
+	mov	sp, x0
+	csdb
 	ret
 	.cfi_endproc
                                         ; -- End function
@@ -240,7 +411,11 @@ LBB2_4:
 _main:                                  ; @main
 	.cfi_startproc
 ; %bb.0:
+	cmp	sp, #0
+	csetm	x16, ne
 	stp	x28, x27, [sp, #-32]!           ; 16-byte Folded Spill
+	and	x29, x29, x16
+	csdb
 	stp	x29, x30, [sp, #16]             ; 16-byte Folded Spill
 	add	x29, sp, #16
 	sub	sp, sp, #576
@@ -251,23 +426,52 @@ _main:                                  ; @main
 	.cfi_offset w28, -32
 	adrp	x8, ___stack_chk_guard@GOTPAGE
 	ldr	x8, [x8, ___stack_chk_guard@GOTPAGEOFF]
+	and	x8, x8, x16
+	csdb
 	ldr	x8, [x8]
+	and	x8, x8, x16
+	csdb
 	stur	x8, [x29, #-24]
+	and	wzr, wzr, w16
+	csdb
 	str	wzr, [sp, #52]
+	and	w0, w0, w16
+	csdb
 	str	w0, [sp, #48]
+	and	x1, x1, x16
+	csdb
 	str	x1, [sp, #40]
+	mov	x0, sp
+	and	x0, x0, x16
+	mov	sp, x0
 	bl	_timer_start
+	cmp	sp, #0
+	csetm	x16, ne
 	ldr	x8, [sp, #40]
 	ldr	x0, [x8, #8]
+	and	x0, x0, x16
+	mov	x1, sp
+	and	x1, x1, x16
+	mov	sp, x1
+	csdb
 	bl	_atoi
+	cmp	sp, #0
+	csetm	x16, ne
 	adrp	x8, _secret@PAGE
+	and	w0, w0, w16
+	csdb
 	str	w0, [x8, _secret@PAGEOFF]
 	str	wzr, [sp, #36]
 	; InlineAsm Start
 	dmb	sy
 	isb
 	; InlineAsm End
+	mov	x0, sp
+	and	x0, x0, x16
+	mov	sp, x0
 	bl	_setup
+	cmp	sp, #0
+	csetm	x16, ne
 	; InlineAsm Start
 	dmb	sy
 	isb
@@ -276,108 +480,217 @@ _main:                                  ; @main
 	b	LBB3_1
 LBB3_1:                                 ; =>This Inner Loop Header: Depth=1
 	ldr	w8, [sp, #32]
+	and	w8, w8, w16
+	csdb
 	subs	w8, w8, #32
 	cset	w8, ge
-	tbnz	w8, #0, LBB3_4
-	b	LBB3_2
-LBB3_2:                                 ;   in Loop: Header=BB3_1 Depth=1
+	and	w8, w8, #0x1
+	ands	w8, w8, #0x3
+	b.ne	LBB3_3
+; %bb.2:                                ;   in Loop: Header=BB3_1 Depth=1
+	csel	x16, x16, xzr, eq
+	b	LBB3_4
+LBB3_3:
+	csel	x16, x16, xzr, ne
+	b	LBB3_6
+LBB3_4:                                 ;   in Loop: Header=BB3_1 Depth=1
+	mov	x0, sp
+	and	x0, x0, x16
+	mov	sp, x0
 	bl	_leakValue
+	cmp	sp, #0
+	csetm	x16, ne
 	adrp	x8, _time1@PAGE
 	ldr	x8, [x8, _time1@PAGEOFF]
+	and	x8, x8, x16
 	ldrsw	x10, [sp, #32]
 	add	x9, sp, #312
+	csdb
 	str	x8, [x9, x10, lsl #3]
 	adrp	x8, _time2@PAGE
 	ldr	x8, [x8, _time2@PAGEOFF]
+	and	x8, x8, x16
 	ldrsw	x10, [sp, #32]
 	add	x9, sp, #56
+	csdb
 	str	x8, [x9, x10, lsl #3]
-	b	LBB3_3
-LBB3_3:                                 ;   in Loop: Header=BB3_1 Depth=1
+	b	LBB3_5
+LBB3_5:                                 ;   in Loop: Header=BB3_1 Depth=1
 	ldr	w8, [sp, #32]
 	add	w8, w8, #1
+	and	w8, w8, w16
+	csdb
 	str	w8, [sp, #32]
 	b	LBB3_1
-LBB3_4:
+LBB3_6:
+	and	wzr, wzr, w16
+	csdb
 	str	wzr, [sp, #28]
-	b	LBB3_5
-LBB3_5:                                 ; =>This Inner Loop Header: Depth=1
+	b	LBB3_7
+LBB3_7:                                 ; =>This Inner Loop Header: Depth=1
 	ldr	w8, [sp, #28]
+	and	w8, w8, w16
+	csdb
 	subs	w8, w8, #32
 	cset	w8, ge
-	tbnz	w8, #0, LBB3_8
-	b	LBB3_6
-LBB3_6:                                 ;   in Loop: Header=BB3_5 Depth=1
+	and	w8, w8, #0x1
+	ands	w8, w8, #0x3
+	b.ne	LBB3_9
+; %bb.8:                                ;   in Loop: Header=BB3_7 Depth=1
+	csel	x16, x16, xzr, eq
+	b	LBB3_10
+LBB3_9:
+	csel	x16, x16, xzr, ne
+	b	LBB3_12
+LBB3_10:                                ;   in Loop: Header=BB3_7 Depth=1
 	ldrsw	x9, [sp, #28]
 	add	x8, sp, #312
 	ldr	x8, [x8, x9, lsl #3]
+	and	x8, x8, x16
 	mov	x9, sp
+	csdb
 	str	x8, [x9]
 	adrp	x0, l_.str@PAGE
 	add	x0, x0, l_.str@PAGEOFF
+	mov	x1, sp
+	and	x1, x1, x16
+	mov	sp, x1
 	bl	_printf
-	b	LBB3_7
-LBB3_7:                                 ;   in Loop: Header=BB3_5 Depth=1
+	cmp	sp, #0
+	csetm	x16, ne
+	b	LBB3_11
+LBB3_11:                                ;   in Loop: Header=BB3_7 Depth=1
 	ldr	w8, [sp, #28]
 	add	w8, w8, #1
+	and	w8, w8, w16
+	csdb
 	str	w8, [sp, #28]
-	b	LBB3_5
-LBB3_8:
+	b	LBB3_7
+LBB3_12:
 	adrp	x0, l_.str.1@PAGE
 	add	x0, x0, l_.str.1@PAGEOFF
+	mov	x1, sp
+	and	x1, x1, x16
+	mov	sp, x1
 	bl	_printf
+	cmp	sp, #0
+	csetm	x16, ne
+	and	wzr, wzr, w16
+	csdb
 	str	wzr, [sp, #24]
-	b	LBB3_9
-LBB3_9:                                 ; =>This Inner Loop Header: Depth=1
+	b	LBB3_13
+LBB3_13:                                ; =>This Inner Loop Header: Depth=1
 	ldr	w8, [sp, #24]
+	and	w8, w8, w16
+	csdb
 	subs	w8, w8, #32
 	cset	w8, ge
-	tbnz	w8, #0, LBB3_12
-	b	LBB3_10
-LBB3_10:                                ;   in Loop: Header=BB3_9 Depth=1
+	and	w8, w8, #0x1
+	ands	w8, w8, #0x3
+	b.ne	LBB3_15
+; %bb.14:                               ;   in Loop: Header=BB3_13 Depth=1
+	csel	x16, x16, xzr, eq
+	b	LBB3_16
+LBB3_15:
+	csel	x16, x16, xzr, ne
+	b	LBB3_18
+LBB3_16:                                ;   in Loop: Header=BB3_13 Depth=1
 	ldrsw	x9, [sp, #24]
 	add	x8, sp, #56
 	ldr	x8, [x8, x9, lsl #3]
+	and	x8, x8, x16
 	mov	x9, sp
+	csdb
 	str	x8, [x9]
 	adrp	x0, l_.str@PAGE
 	add	x0, x0, l_.str@PAGEOFF
+	mov	x1, sp
+	and	x1, x1, x16
+	mov	sp, x1
 	bl	_printf
-	b	LBB3_11
-LBB3_11:                                ;   in Loop: Header=BB3_9 Depth=1
+	cmp	sp, #0
+	csetm	x16, ne
+	b	LBB3_17
+LBB3_17:                                ;   in Loop: Header=BB3_13 Depth=1
 	ldr	w8, [sp, #24]
 	add	w8, w8, #1
+	and	w8, w8, w16
+	csdb
 	str	w8, [sp, #24]
-	b	LBB3_9
-LBB3_12:
+	b	LBB3_13
+LBB3_18:
+	mov	x0, sp
+	and	x0, x0, x16
+	mov	sp, x0
 	bl	_timer_stop
+	cmp	sp, #0
+	csetm	x16, ne
 	adrp	x8, _tmp2@PAGE
 	ldr	x10, [x8, _tmp2@PAGEOFF]
+	and	x10, x10, x16
 	adrp	x8, _tmp3@PAGE
 	ldr	x8, [x8, _tmp3@PAGEOFF]
+	and	x8, x8, x16
 	mov	x9, sp
+	csdb
 	str	x10, [x9]
 	str	x8, [x9, #8]
 	adrp	x0, l_.str.2@PAGE
 	add	x0, x0, l_.str.2@PAGEOFF
+	mov	x1, sp
+	and	x1, x1, x16
+	mov	sp, x1
 	bl	_printf
+	cmp	sp, #0
+	csetm	x16, ne
 	ldr	w8, [sp, #52]
+	and	w8, w8, w16
+	csdb
 	str	w8, [sp, #20]                   ; 4-byte Folded Spill
 	ldur	x9, [x29, #-24]
+	and	x9, x9, x16
 	adrp	x8, ___stack_chk_guard@GOTPAGE
 	ldr	x8, [x8, ___stack_chk_guard@GOTPAGEOFF]
+	and	x8, x8, x16
+	csdb
 	ldr	x8, [x8]
+	and	x8, x8, x16
+	csdb
+	and	x8, x8, x16
+	csdb
 	subs	x8, x8, x9
 	cset	w8, eq
-	tbnz	w8, #0, LBB3_14
-	b	LBB3_13
-LBB3_13:
+	and	w8, w8, #0x1
+	and	w8, w8, w16
+	csdb
+	ands	w8, w8, #0x3
+	b.ne	LBB3_20
+; %bb.19:
+	csel	x16, x16, xzr, eq
+	b	LBB3_21
+LBB3_20:
+	csel	x16, x16, xzr, ne
+	b	LBB3_22
+LBB3_21:
+	mov	x0, sp
+	and	x0, x0, x16
+	mov	sp, x0
 	bl	___stack_chk_fail
-LBB3_14:
+	cmp	sp, #0
+	csetm	x16, ne
+LBB3_22:
 	ldr	w0, [sp, #20]                   ; 4-byte Folded Reload
 	add	sp, sp, #576
 	ldp	x29, x30, [sp, #16]             ; 16-byte Folded Reload
+	and	x29, x29, x16
+	and	x30, x30, x16
 	ldp	x28, x27, [sp], #32             ; 16-byte Folded Reload
+	and	x28, x28, x16
+	and	x27, x27, x16
+	mov	x1, sp
+	and	x1, x1, x16
+	mov	sp, x1
+	csdb
 	ret
 	.cfi_endproc
                                         ; -- End function

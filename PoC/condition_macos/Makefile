@@ -1,6 +1,6 @@
 all: spectre
 
-PASASS = -mspeculative-load-hardening
+PASSf = -mspeculative-load-hardening
 
 cleanmain:
 	rm main.ll main.s
