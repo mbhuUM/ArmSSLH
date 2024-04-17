@@ -7,6 +7,8 @@ target triple = "arm64-apple-macosx12.0.0"
 @val2 = global i64 19088743, align 4096
 @secret = global i32 -559039810, align 2048
 @array = internal global [131072 x i8] zeroinitializer, align 2048
+@tmp2 = global i64 0, align 8
+@tmp3 = global i64 0, align 8
 @array_ctx = global ptr null, align 8
 @arr_context = global ptr null, align 2048
 @val_context = global ptr null, align 2048
@@ -16,6 +18,7 @@ target triple = "arm64-apple-macosx12.0.0"
 @time2 = global i64 0, align 8
 @.str = private unnamed_addr constant [7 x i8] c"%3lld \00", align 1
 @.str.1 = private unnamed_addr constant [2 x i8] c"\0A\00", align 1
+@.str.2 = private unnamed_addr constant [7 x i8] c"%d, %d\00", align 1
 @is_public_context = global ptr null, align 2048
 @training_offset = global i64 0, align 8
 @timestamp = external global i64, align 8
@@ -25,43 +28,32 @@ target triple = "arm64-apple-macosx12.0.0"
 define i32 @victim_function(i32 noundef %0, i32 noundef %1) #0 {
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
-  %5 = alloca i32, align 4
-  %6 = alloca double, align 8
-  %7 = alloca double, align 8
-  store i32 %0, ptr %4, align 4
-  store i32 %1, ptr %5, align 4
-  %8 = load i32, ptr %5, align 4
-  %9 = load i8, ptr getelementptr inbounds ([131072 x i8], ptr @array, i64 0, i64 1024), align 1024
-  %10 = zext i8 %9 to i32
-  %11 = icmp slt i32 %8, %10
-  br i1 %11, label %12, label %21
+  store i32 %0, ptr %3, align 4
+  store i32 %1, ptr %4, align 4
+  %5 = load i32, ptr %4, align 4
+  %6 = load i8, ptr getelementptr inbounds ([131072 x i8], ptr @array, i64 0, i64 1024), align 1024
+  %7 = zext i8 %6 to i32
+  %8 = icmp slt i32 %5, %7
+  br i1 %8, label %9, label %15
 
-12:                                               ; preds = %2
-  %13 = load i32, ptr %4, align 4
-  %14 = icmp ne i32 %13, 0
-  br i1 %14, label %15, label %18
+9:                                                ; preds = %2
+  %10 = load i32, ptr %3, align 4
+  %11 = icmp ne i32 %10, 0
+  br i1 %11, label %12, label %13
 
-15:                                               ; preds = %12
-  call void @llvm.memcpy.p0.p0.i64(ptr align 8 %6, ptr align 1 @val, i64 8, i1 false)
-  %16 = load double, ptr %6, align 8
-  %17 = fptosi double %16 to i32
-  store i32 %17, ptr %3, align 4
-  br label %22
+12:                                               ; preds = %9
+  call void @llvm.memcpy.p0.p0.i64(ptr align 8 @tmp2, ptr align 1 @val, i64 8, i1 false)
+  br label %14
 
-18:                                               ; preds = %12
-  call void @llvm.memcpy.p0.p0.i64(ptr align 8 %7, ptr align 1 @val2, i64 8, i1 false)
-  %19 = load double, ptr %7, align 8
-  %20 = fptosi double %19 to i32
-  store i32 %20, ptr %3, align 4
-  br label %22
+13:                                               ; preds = %9
+  call void @llvm.memcpy.p0.p0.i64(ptr align 8 @tmp3, ptr align 1 @val2, i64 8, i1 false)
+  br label %14
 
-21:                                               ; preds = %2
-  store i32 0, ptr %3, align 4
-  br label %22
+14:                                               ; preds = %13, %12
+  br label %15
 
-22:                                               ; preds = %21, %18, %15
-  %23 = load i32, ptr %3, align 4
-  ret i32 %23
+15:                                               ; preds = %14, %2
+  ret i32 0
 }
 
 ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
@@ -291,8 +283,11 @@ define i32 @main(i32 noundef %0, ptr noundef %1) #0 {
 
 58:                                               ; preds = %46
   call void @timer_stop()
-  %59 = load i32, ptr %3, align 4
-  ret i32 %59
+  %59 = load i64, ptr @tmp2, align 8
+  %60 = load i64, ptr @tmp3, align 8
+  %61 = call i32 (ptr, ...) @printf(ptr noundef @.str.2, i64 noundef %59, i64 noundef %60)
+  %62 = load i32, ptr %3, align 4
+  ret i32 %62
 }
 
 declare void @timer_start(...) #2
@@ -319,17 +314,17 @@ attributes #3 = { nounwind }
 !5 = !{!"clang version 17.0.6 (https://github.com/llvm/llvm-project.git 6009708b4367171ccdbf4b5905cb6a803753fe18)"}
 !6 = distinct !{!6, !7}
 !7 = !{!"llvm.loop.mustprogress"}
-!8 = !{i64 2151209214, i64 2151209223}
-!9 = !{i64 2151209265, i64 2151209274}
-!10 = !{i64 2151209313, i64 2151209322}
+!8 = !{i64 2151209284, i64 2151209293}
+!9 = !{i64 2151209335, i64 2151209344}
+!10 = !{i64 2151209383, i64 2151209392}
 !11 = distinct !{!11, !7}
-!12 = !{i64 2151170028, i64 2151170037}
-!13 = !{i64 2151170096, i64 2151170105}
-!14 = !{i64 2151170144}
-!15 = !{i64 2151170227, i64 2151170236}
-!16 = !{i64 2151170293, i64 2151170302}
-!17 = !{i64 2151209361, i64 2151209370}
-!18 = !{i64 2151209409, i64 2151209418}
+!12 = !{i64 2151170098, i64 2151170107}
+!13 = !{i64 2151170166, i64 2151170175}
+!14 = !{i64 2151170214}
+!15 = !{i64 2151170297, i64 2151170306}
+!16 = !{i64 2151170363, i64 2151170372}
+!17 = !{i64 2151209431, i64 2151209440}
+!18 = !{i64 2151209479, i64 2151209488}
 !19 = distinct !{!19, !7}
 !20 = distinct !{!20, !7}
 !21 = distinct !{!21, !7}

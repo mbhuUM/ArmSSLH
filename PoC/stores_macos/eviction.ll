@@ -423,71 +423,65 @@ define internal void @initialize_list(ptr noundef %0, i64 noundef %1, i64 nounde
   %6 = alloca i64, align 8
   %7 = alloca i64, align 8
   %8 = alloca ptr, align 8
-  %9 = alloca i32, align 4
-  %10 = alloca ptr, align 8
+  %9 = alloca ptr, align 8
   store ptr %0, ptr %4, align 8
   store i64 %1, ptr %5, align 8
   store i64 %2, ptr %6, align 8
   store i64 0, ptr %7, align 8
   store ptr null, ptr %8, align 8
-  store i32 0, ptr %9, align 4
-  %11 = load i64, ptr %6, align 8
-  store i64 %11, ptr %7, align 8
-  br label %12
+  %10 = load i64, ptr %6, align 8
+  store i64 %10, ptr %7, align 8
+  br label %11
 
-12:                                               ; preds = %41, %3
-  %13 = load i64, ptr %7, align 8
-  %14 = load i64, ptr %5, align 8
-  %15 = sub i64 %14, 64
-  %16 = icmp ult i64 %13, %15
-  br i1 %16, label %17, label %45
+11:                                               ; preds = %37, %3
+  %12 = load i64, ptr %7, align 8
+  %13 = load i64, ptr %5, align 8
+  %14 = sub i64 %13, 64
+  %15 = icmp ult i64 %12, %14
+  br i1 %15, label %16, label %41
 
-17:                                               ; preds = %12
-  %18 = load i32, ptr %9, align 4
-  %19 = add nsw i32 %18, 1
-  store i32 %19, ptr %9, align 4
-  %20 = load ptr, ptr %4, align 8
-  %21 = load i64, ptr %7, align 8
-  %22 = getelementptr inbounds i8, ptr %20, i64 %21
-  store ptr %22, ptr %10, align 8
-  %23 = load ptr, ptr %10, align 8
-  %24 = load ptr, ptr %10, align 8
-  %25 = getelementptr inbounds %struct.elem, ptr %24, i32 0, i32 2
-  store i32 -2, ptr %25, align 8
-  %26 = load ptr, ptr %10, align 8
-  %27 = getelementptr inbounds %struct.elem, ptr %26, i32 0, i32 3
-  store i64 0, ptr %27, align 8
-  %28 = load ptr, ptr %8, align 8
-  %29 = load ptr, ptr %10, align 8
-  %30 = getelementptr inbounds %struct.elem, ptr %29, i32 0, i32 1
-  store ptr %28, ptr %30, align 8
-  %31 = load ptr, ptr %10, align 8
-  %32 = getelementptr inbounds %struct.elem, ptr %31, i32 0, i32 0
-  store ptr null, ptr %32, align 8
+16:                                               ; preds = %11
+  %17 = load ptr, ptr %4, align 8
+  %18 = load i64, ptr %7, align 8
+  %19 = getelementptr inbounds i8, ptr %17, i64 %18
+  store ptr %19, ptr %9, align 8
+  %20 = load ptr, ptr %9, align 8
+  %21 = getelementptr inbounds %struct.elem, ptr %20, i32 0, i32 2
+  store i32 -2, ptr %21, align 8
+  %22 = load ptr, ptr %9, align 8
+  %23 = getelementptr inbounds %struct.elem, ptr %22, i32 0, i32 3
+  store i64 0, ptr %23, align 8
+  %24 = load ptr, ptr %8, align 8
+  %25 = load ptr, ptr %9, align 8
+  %26 = getelementptr inbounds %struct.elem, ptr %25, i32 0, i32 1
+  store ptr %24, ptr %26, align 8
+  %27 = load ptr, ptr %9, align 8
+  %28 = getelementptr inbounds %struct.elem, ptr %27, i32 0, i32 0
+  store ptr null, ptr %28, align 8
+  %29 = load ptr, ptr %8, align 8
+  %30 = icmp ne ptr %29, null
+  br i1 %30, label %31, label %35
+
+31:                                               ; preds = %16
+  %32 = load ptr, ptr %9, align 8
   %33 = load ptr, ptr %8, align 8
-  %34 = icmp ne ptr %33, null
-  br i1 %34, label %35, label %39
+  %34 = getelementptr inbounds %struct.elem, ptr %33, i32 0, i32 0
+  store ptr %32, ptr %34, align 8
+  br label %35
 
-35:                                               ; preds = %17
-  %36 = load ptr, ptr %10, align 8
-  %37 = load ptr, ptr %8, align 8
-  %38 = getelementptr inbounds %struct.elem, ptr %37, i32 0, i32 0
-  store ptr %36, ptr %38, align 8
-  br label %39
+35:                                               ; preds = %31, %16
+  %36 = load ptr, ptr %9, align 8
+  store ptr %36, ptr %8, align 8
+  br label %37
 
-39:                                               ; preds = %35, %17
-  %40 = load ptr, ptr %10, align 8
-  store ptr %40, ptr %8, align 8
-  br label %41
+37:                                               ; preds = %35
+  %38 = load i64, ptr @page_size, align 8
+  %39 = load i64, ptr %7, align 8
+  %40 = add i64 %39, %38
+  store i64 %40, ptr %7, align 8
+  br label %11, !llvm.loop !11
 
-41:                                               ; preds = %39
-  %42 = load i64, ptr @page_size, align 8
-  %43 = load i64, ptr %7, align 8
-  %44 = add i64 %43, %42
-  store i64 %44, ptr %7, align 8
-  br label %12, !llvm.loop !11
-
-45:                                               ; preds = %12
+41:                                               ; preds = %11
   ret void
 }
 
@@ -2009,27 +2003,27 @@ attributes #9 = { allocsize(1) }
 !14 = distinct !{!14, !7}
 !15 = distinct !{!15, !7}
 !16 = distinct !{!16, !7}
-!17 = !{i64 2148427024}
-!18 = !{i64 2148425835, i64 2148425844}
-!19 = !{i64 2148425903, i64 2148425912}
-!20 = !{i64 2148425951}
-!21 = !{i64 2148426034, i64 2148426043}
-!22 = !{i64 2148426100, i64 2148426109}
+!17 = !{i64 2148426997}
+!18 = !{i64 2148425808, i64 2148425817}
+!19 = !{i64 2148425876, i64 2148425885}
+!20 = !{i64 2148425924}
+!21 = !{i64 2148426007, i64 2148426016}
+!22 = !{i64 2148426073, i64 2148426082}
 !23 = distinct !{!23, !7}
-!24 = !{i64 2148427180}
+!24 = !{i64 2148427153}
 !25 = distinct !{!25, !7}
 !26 = distinct !{!26, !7}
 !27 = distinct !{!27, !7}
-!28 = !{i64 2148427296}
-!29 = !{i64 2148427376}
-!30 = !{i64 2148427456, i64 2148427465}
+!28 = !{i64 2148427269}
+!29 = !{i64 2148427349}
+!30 = !{i64 2148427429, i64 2148427438}
 !31 = distinct !{!31, !7}
-!32 = !{i64 2148426508}
-!33 = !{i64 2148426587}
-!34 = !{i64 2148426672}
-!35 = !{i64 2148426763}
-!36 = !{i64 2148426842}
-!37 = !{i64 2148426927}
+!32 = !{i64 2148426481}
+!33 = !{i64 2148426560}
+!34 = !{i64 2148426645}
+!35 = !{i64 2148426736}
+!36 = !{i64 2148426815}
+!37 = !{i64 2148426900}
 !38 = distinct !{!38, !7}
 !39 = distinct !{!39, !7}
 !40 = distinct !{!40, !7}
@@ -2039,7 +2033,7 @@ attributes #9 = { allocsize(1) }
 !44 = distinct !{!44, !7}
 !45 = distinct !{!45, !7}
 !46 = distinct !{!46, !7}
-!47 = !{i64 2148427827}
-!48 = !{i64 2148427909}
-!49 = !{i64 2148427991, i64 2148428000}
+!47 = !{i64 2148427800}
+!48 = !{i64 2148427882}
+!49 = !{i64 2148427964, i64 2148427973}
 !50 = distinct !{!50, !7}

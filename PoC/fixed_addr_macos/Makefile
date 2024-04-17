@@ -1,6 +1,6 @@
 all: spectre
 
-PASASS = -mspeculative-load-hardening
+PASSFS = -mspeculative-load-hardening
 
 cleanmain:
 	rm main.ll main.s
@@ -21,7 +21,7 @@ david:
 
 vizmain:
 	opt -disable-output -passes="dot-cfg" main.ll
-	cat .victim_function.dot | dot -Tpdf > victim.pdf
+	cat .main.dot | dot -Tpdf > main.pdf
 
 
 clean:
